@@ -141,7 +141,7 @@ export const PUZZLES: Puzzle[] = [
   {
     id: 'p014',
     title: 'Double Check',
-    fen: '1n1qkb2/3p1p2/8/6N1/8/8/4R3/2K5 w - - 0 1',
+    fen: '1n1qkb2/3p1p2/8/6N1/4p3/8/4R3/2K5 w - - 0 1',
     solution: ['g5e4', 'b8c6', 'e4f6'],
     playerColor: 'w',
     difficulty: 4,
