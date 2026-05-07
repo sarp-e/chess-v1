@@ -148,7 +148,7 @@ export const LESSONS: Lesson[] = [
       {
         heading: 'The Opposition',
         body: 'Two kings are in "opposition" when they face each other with one square between them. The side that does NOT have to move holds the opposition and has the advantage — the opposing king must give way.',
-        fen: '8/8/8/3k4/8/3K4/8/8 w - - 0 1',
+        fen: '8/8/8/3k4/8/3K4/8/8 b - - 0 1',
         caption: 'White holds the opposition. Black must step aside.',
       },
       {
@@ -203,15 +203,15 @@ export const LESSONS: Lesson[] = [
       },
       {
         heading: 'The Knight Fork',
-        body: "Knights are the best forking pieces because they move in an L-shape that can't be blocked. A classic knight fork attacks the king and a rook (a 'royal fork') — the opponent must move their king, and the rook falls.",
+        body: "Knights are the best forking pieces because they move in an L-shape that can't be blocked. A classic knight fork attacks the king and the queen (a 'royal fork') — the opponent must move their king, and the queen falls.",
         fen: '4k3/8/8/3N4/8/8/8/4K3 w - - 0 1',
         caption: "The knight on d5 can fork king and multiple squares.",
       },
       {
         heading: 'The Pawn Fork',
         body: "Pawn forks are easy to overlook but very effective. A single pawn advance can attack two pieces at once. Always check if a pawn advance creates a fork before playing defensive moves.",
-        fen: '4k3/8/3r1r2/4P3/8/8/8/4K3 w - - 0 1',
-        caption: "e5-e6 would fork the two rooks... but it's White's pawn turn.",
+        fen: '4k3/3r1r2/8/4P3/8/8/8/4K3 w - - 0 1',
+        caption: "e5-e6 forks both rooks — White wins one.",
       },
     ],
   },
