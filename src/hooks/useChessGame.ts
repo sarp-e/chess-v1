@@ -36,6 +36,8 @@ export function useChessGame() {
     if (history.length > 0) {
       const last = history[history.length - 1]
       setLastMove({ from: last.from, to: last.to })
+    } else {
+      setLastMove(null)
     }
 
     if (newGame.isCheckmate()) {
