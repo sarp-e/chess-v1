@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { Analytics } from '@vercel/analytics/react'
 import { SettingsProvider } from './context/SettingsContext'
 import Navbar from './components/Layout/Navbar'
 import PlayPage from './pages/PlayPage'
@@ -19,6 +20,7 @@ export default function App() {
           </Routes>
         </div>
       </BrowserRouter>
+      <Analytics />
     </SettingsProvider>
   )
 }
