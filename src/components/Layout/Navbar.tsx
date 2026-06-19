@@ -7,18 +7,19 @@ export default function Navbar() {
   const { settings, updateSettings } = useSettings()
   const [settingsOpen, setSettingsOpen] = useState(false)
 
-  const navLink = (to: string, label: string) => (
-    <Link
-      to={to}
-      className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
-        location.pathname.startsWith(to)
-          ? 'bg-white/20 text-white'
-          : 'text-white/70 hover:text-white hover:bg-white/10'
-      }`}
-    >
-      {label}
-    </Link>
-  )
+  const navLink = (to: string, label: string, exact = false) => {
+    const active = exact ? location.pathname === to : location.pathname.startsWith(to)
+    return (
+      <Link
+        to={to}
+        className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+          active ? 'bg-white/20 text-white' : 'text-white/70 hover:text-white hover:bg-white/10'
+        }`}
+      >
+        {label}
+      </Link>
+    )
+  }
 
   return (
     <nav className="bg-gray-900 border-b border-gray-800 px-4 py-3 flex items-center justify-between relative z-50">
@@ -27,7 +28,8 @@ export default function Navbar() {
           ♟ Chess
         </Link>
         <div className="flex items-center gap-1">
-          {navLink('/play', 'Play')}
+          {navLink('/play', 'Play', true)}
+          {navLink('/play/online', 'Online')}
           {navLink('/puzzles', 'Puzzles')}
           {navLink('/learn', 'Learn')}
         </div>
