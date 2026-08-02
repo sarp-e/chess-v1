@@ -1,4 +1,6 @@
 import { useState, useCallback, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { Chess } from 'chess.js'
 import { BOTS } from '../data/bots'
 import type { Bot } from '../types'
 import ChessBoard from '../components/Board/ChessBoard'
@@ -8,6 +10,7 @@ import { useChessGame } from '../hooks/useChessGame'
 import { useStockfish } from '../hooks/useStockfish'
 
 export default function PlayPage() {
+  const navigate = useNavigate()
   const [selectedBot, setSelectedBot] = useState<Bot>(BOTS[2]) // Coach Remy default
   const [pendingBot, setPendingBot] = useState<Bot>(BOTS[2])
   const [orientation, setOrientation] = useState<'white' | 'black'>('white')
@@ -108,12 +111,28 @@ export default function PlayPage() {
             />
 
             {isGameOver && (
-              <button
-                onClick={() => setShowBotSelect(true)}
-                className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
-              >
-                Play Again
-              </button>
+              <div className="flex flex-col gap-2">
+                <button
+                  onClick={() => {
+                    // Convert SAN history to UCI for the review page
+                    const chess = new Chess()
+                    const uciMoves = moveHistory.map(san => {
+                      const move = chess.move(san)
+                      return move.from + move.to + (move.promotion ?? '')
+                    })
+                    navigate('/review', { state: { uciMoves, playerColor: 'white' } })
+                  }}
+                  className="w-full py-2.5 bg-gray-800 hover:bg-gray-700 text-white font-medium rounded-lg transition-colors"
+                >
+                  Review Game
+                </button>
+                <button
+                  onClick={() => setShowBotSelect(true)}
+                  className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+                >
+                  Play Again
+                </button>
+              </div>
             )}
           </>
         )}

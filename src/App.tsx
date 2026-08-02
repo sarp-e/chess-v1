@@ -7,6 +7,7 @@ import PuzzlesPage from './pages/PuzzlesPage'
 import LearnPage from './pages/LearnPage'
 import OnlineLobbyPage from './pages/OnlineLobbyPage'
 import OnlineGamePage from './pages/OnlineGamePage'
+import GameReviewPage from './pages/GameReviewPage'
 
 export default function App() {
   return (
@@ -21,6 +22,7 @@ export default function App() {
             <Route path="/play/online/:gameId" element={<OnlineGamePage />} />
             <Route path="/puzzles" element={<PuzzlesPage />} />
             <Route path="/learn" element={<LearnPage />} />
+            <Route path="/review" element={<GameReviewPage />} />
           </Routes>
         </div>
       </BrowserRouter>

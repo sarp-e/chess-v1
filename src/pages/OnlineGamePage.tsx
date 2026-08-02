@@ -25,7 +25,7 @@ export default function OnlineGamePage() {
   }, [navigate])
 
   const {
-    fen, status, result, myColor, isMyTurn, lastMove,
+    fen, moves, status, result, myColor, isMyTurn, lastMove,
     drawOfferPending, incomingDrawOffer, rematchGameId,
     makeMove, resign, offerDraw, acceptDraw, declineDraw, requestRematch,
   } = useOnlineGame(gameId ?? '', userId ?? '')
@@ -198,8 +198,14 @@ export default function OnlineGamePage() {
               Rematch
             </button>
             <button
+              onClick={() => navigate('/review', { state: { uciMoves: moves, playerColor: myColor ?? 'white' } })}
+              className="w-full py-2.5 bg-gray-800 hover:bg-gray-700 text-white font-medium rounded-lg transition-colors"
+            >
+              Review Game
+            </button>
+            <button
               onClick={() => navigate('/play/online')}
-              className="w-full py-2.5 bg-gray-800 hover:bg-gray-700 text-gray-300 font-medium rounded-lg transition-colors"
+              className="w-full py-2.5 bg-gray-700 hover:bg-gray-600 text-gray-300 font-medium rounded-lg transition-colors"
             >
               Back to lobby
             </button>
