@@ -23,8 +23,16 @@ export default function OnlineGamePage() {
     getOrCreateUser().then(setUserId).catch(() => navigate('/play/online'))
   }, [navigate])
 
-  const { fen, status, result, myColor, isMyTurn, lastMove, makeMove, resign, offerDraw } =
-    useOnlineGame(gameId ?? '', userId ?? '')
+  const {
+    fen, status, result, myColor, isMyTurn, lastMove,
+    drawOfferPending, incomingDrawOffer, rematchGameId,
+    makeMove, resign, offerDraw, acceptDraw, declineDraw, requestRematch,
+  } = useOnlineGame(gameId ?? '', userId ?? '')
+
+  // Navigate to rematch game once we have an ID
+  useEffect(() => {
+    if (rematchGameId) navigate(`/play/online/${rematchGameId}`)
+  }, [rematchGameId, navigate])
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(window.location.href)
@@ -58,7 +66,7 @@ export default function OnlineGamePage() {
     if (status !== 'finished' || !result) return null
     if (result === 'draw') return "It's a draw!"
     const winner = result === 'white' ? 'White' : 'Black'
-    const isMe = result === (myColor === 'white' ? 'white' : 'black')
+    const isMe = result === myColor
     return `${winner} wins — ${isMe ? 'You won!' : 'You lost.'}`
   })()
 
@@ -68,10 +76,7 @@ export default function OnlineGamePage() {
       <div className="flex-1 flex items-center justify-center">
         <ChessBoard
           fen={fen}
-          onMove={(from, to) => {
-            makeMove(from, to)
-            return true
-          }}
+          onMove={(from, to) => { makeMove(from, to); return true }}
           orientation={myColor ?? 'white'}
           disabled={!isMyTurn}
           lastMove={lastMove}
@@ -107,19 +112,41 @@ export default function OnlineGamePage() {
           />
         )}
 
+        {/* Incoming draw offer */}
+        {incomingDrawOffer && (
+          <div className="bg-gray-900 rounded-xl p-4 space-y-3">
+            <p className="text-white text-sm text-center font-medium">Opponent offers a draw</p>
+            <div className="flex gap-2">
+              <button
+                onClick={acceptDraw}
+                className="flex-1 py-2 bg-green-700 hover:bg-green-600 text-white text-sm rounded-lg transition-colors"
+              >
+                Accept
+              </button>
+              <button
+                onClick={declineDraw}
+                className="flex-1 py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 text-sm rounded-lg transition-colors"
+              >
+                Decline
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Game over */}
         {status === 'finished' && resultLabel && (
           <StatusBanner label={resultLabel} />
         )}
 
-        {/* Actions */}
+        {/* Active game actions */}
         {status === 'active' && (
           <div className="flex gap-2">
             <button
               onClick={offerDraw}
-              className="flex-1 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm rounded-lg transition-colors"
+              disabled={drawOfferPending || incomingDrawOffer}
+              className="flex-1 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Draw
+              {drawOfferPending ? 'Draw offered…' : 'Draw'}
             </button>
             <button
               onClick={resign}
@@ -130,13 +157,22 @@ export default function OnlineGamePage() {
           </div>
         )}
 
+        {/* Post-game actions */}
         {status === 'finished' && (
-          <button
-            onClick={() => navigate('/play/online')}
-            className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
-          >
-            Back to lobby
-          </button>
+          <div className="flex flex-col gap-2">
+            <button
+              onClick={requestRematch}
+              className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+            >
+              Rematch
+            </button>
+            <button
+              onClick={() => navigate('/play/online')}
+              className="w-full py-2.5 bg-gray-800 hover:bg-gray-700 text-gray-300 font-medium rounded-lg transition-colors"
+            >
+              Back to lobby
+            </button>
+          </div>
         )}
       </div>
     </div>

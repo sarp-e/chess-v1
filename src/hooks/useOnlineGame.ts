@@ -13,14 +13,23 @@ export interface OnlineGameState {
   myColor: 'white' | 'black' | null
   isMyTurn: boolean
   lastMove: { from: string; to: string } | null
+  drawOfferPending: boolean
+  incomingDrawOffer: boolean
+  rematchGameId: string | null
   makeMove: (from: string, to: string) => Promise<boolean>
   resign: () => Promise<void>
-  offerDraw: () => Promise<void>
+  offerDraw: () => void
+  acceptDraw: () => Promise<void>
+  declineDraw: () => void
+  requestRematch: () => Promise<void>
 }
 
 export function useOnlineGame(gameId: string, userId: string): OnlineGameState {
   const [game, setGame] = useState<GameRow | null>(null)
   const [status, setStatus] = useState<OnlineGameStatus>('loading')
+  const [drawOfferPending, setDrawOfferPending] = useState(false)
+  const [incomingDrawOffer, setIncomingDrawOffer] = useState(false)
+  const [rematchGameId, setRematchGameId] = useState<string | null>(null)
   const gameRef = useRef<GameRow | null>(null)
   gameRef.current = game
 
@@ -71,8 +80,7 @@ export function useOnlineGame(gameId: string, userId: string): OnlineGameState {
       })
   }, [gameId, userId, applyGame])
 
-  // Poll every 2 s while waiting for opponent — more reliable than postgres_changes
-  // for the waiting→active transition
+  // Poll every 2 s while waiting for opponent
   useEffect(() => {
     if (status !== 'waiting' || !gameId) return
 
@@ -84,7 +92,7 @@ export function useOnlineGame(gameId: string, userId: string): OnlineGameState {
     return () => clearInterval(interval)
   }, [status, gameId, applyGame])
 
-  // Broadcast channel for real-time move delivery during active game
+  // Broadcast channel
   useEffect(() => {
     if (!gameId || !userId) return
 
@@ -95,6 +103,15 @@ export function useOnlineGame(gameId: string, userId: string): OnlineGameState {
       })
       .on('broadcast', { event: 'game_over' }, ({ payload }) => {
         if (payload?.game) applyGame(payload.game as GameRow)
+      })
+      .on('broadcast', { event: 'draw_offer' }, () => {
+        setIncomingDrawOffer(true)
+      })
+      .on('broadcast', { event: 'draw_declined' }, () => {
+        setDrawOfferPending(false)
+      })
+      .on('broadcast', { event: 'rematch_offer' }, ({ payload }) => {
+        if (payload?.gameId) setRematchGameId(payload.gameId)
       })
       .subscribe()
 
@@ -129,19 +146,15 @@ export function useOnlineGame(gameId: string, userId: string): OnlineGameState {
 
     const updatedGame: GameRow = { ...current, fen: newFen, moves: newMoves, status: newStatus, result: newResult }
 
-    // Broadcast to opponent immediately (low latency)
     const event = newStatus === 'finished' ? 'game_over' : 'move'
     supabase.channel(`game-moves:${current.id}`).send({ type: 'broadcast', event, payload: { game: updatedGame } })
 
-    // Persist to DB
     const { error } = await supabase
       .from('games')
       .update({ fen: newFen, moves: newMoves, status: newStatus, result: newResult })
       .eq('id', current.id)
 
-    // Update own state immediately (don't wait for a round-trip)
     applyGame(updatedGame)
-
     return !error
   }, [isMyTurn, myColor, applyGame])
 
@@ -155,14 +168,46 @@ export function useOnlineGame(gameId: string, userId: string): OnlineGameState {
     applyGame(updatedGame)
   }, [myColor, applyGame])
 
-  const offerDraw = useCallback(async () => {
+  const offerDraw = useCallback(() => {
+    const current = gameRef.current
+    if (!current) return
+    supabase.channel(`game-moves:${current.id}`).send({ type: 'broadcast', event: 'draw_offer', payload: {} })
+    setDrawOfferPending(true)
+  }, [])
+
+  const acceptDraw = useCallback(async () => {
     const current = gameRef.current
     if (!current) return
     const updatedGame: GameRow = { ...current, status: 'finished', result: 'draw' }
     supabase.channel(`game-moves:${current.id}`).send({ type: 'broadcast', event: 'game_over', payload: { game: updatedGame } })
     await supabase.from('games').update({ status: 'finished', result: 'draw' }).eq('id', current.id)
     applyGame(updatedGame)
+    setIncomingDrawOffer(false)
   }, [applyGame])
+
+  const declineDraw = useCallback(() => {
+    const current = gameRef.current
+    if (!current) return
+    supabase.channel(`game-moves:${current.id}`).send({ type: 'broadcast', event: 'draw_declined', payload: {} })
+    setIncomingDrawOffer(false)
+  }, [])
+
+  const requestRematch = useCallback(async () => {
+    const current = gameRef.current
+    if (!current) return
+    const { data, error } = await supabase
+      .from('games')
+      .insert({
+        white_id: current.black_id ?? current.white_id,
+        black_id: current.white_id,
+        status: current.black_id ? 'active' : 'waiting',
+      })
+      .select('id')
+      .single()
+    if (error || !data) return
+    supabase.channel(`game-moves:${current.id}`).send({ type: 'broadcast', event: 'rematch_offer', payload: { gameId: data.id } })
+    setRematchGameId(data.id)
+  }, [])
 
   return {
     fen: game?.fen ?? new Chess().fen(),
@@ -172,8 +217,14 @@ export function useOnlineGame(gameId: string, userId: string): OnlineGameState {
     myColor,
     isMyTurn,
     lastMove,
+    drawOfferPending,
+    incomingDrawOffer,
+    rematchGameId,
     makeMove,
     resign,
     offerDraw,
+    acceptDraw,
+    declineDraw,
+    requestRematch,
   }
 }
