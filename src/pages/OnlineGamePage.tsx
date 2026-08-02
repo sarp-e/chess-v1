@@ -18,6 +18,7 @@ export default function OnlineGamePage() {
   const navigate = useNavigate()
   const [userId, setUserId] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
+  const [confirming, setConfirming] = useState<'draw' | 'resign' | null>(null)
 
   useEffect(() => {
     getOrCreateUser().then(setUserId).catch(() => navigate('/play/online'))
@@ -140,21 +141,51 @@ export default function OnlineGamePage() {
 
         {/* Active game actions */}
         {status === 'active' && (
-          <div className="flex gap-2">
-            <button
-              onClick={offerDraw}
-              disabled={drawOfferPending || incomingDrawOffer}
-              className="flex-1 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {drawOfferPending ? 'Draw offered…' : 'Draw'}
-            </button>
-            <button
-              onClick={resign}
-              className="flex-1 py-2 bg-gray-800 hover:bg-gray-700 text-red-400 text-sm rounded-lg transition-colors"
-            >
-              Resign
-            </button>
-          </div>
+          confirming ? (
+            <div className="bg-gray-900 rounded-xl p-4 space-y-3">
+              <p className="text-white text-sm text-center">
+                {confirming === 'resign' ? 'Are you sure you want to resign?' : 'Are you sure you want to offer a draw?'}
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    if (confirming === 'resign') resign()
+                    else offerDraw()
+                    setConfirming(null)
+                  }}
+                  className={`flex-1 py-2 text-white text-sm rounded-lg transition-colors ${
+                    confirming === 'resign'
+                      ? 'bg-red-700 hover:bg-red-600'
+                      : 'bg-green-700 hover:bg-green-600'
+                  }`}
+                >
+                  Yes
+                </button>
+                <button
+                  onClick={() => setConfirming(null)}
+                  className="flex-1 py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 text-sm rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex gap-2">
+              <button
+                onClick={() => setConfirming('draw')}
+                disabled={drawOfferPending || incomingDrawOffer}
+                className="flex-1 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {drawOfferPending ? 'Draw offered…' : 'Draw'}
+              </button>
+              <button
+                onClick={() => setConfirming('resign')}
+                className="flex-1 py-2 bg-gray-800 hover:bg-gray-700 text-red-400 text-sm rounded-lg transition-colors"
+              >
+                Resign
+              </button>
+            </div>
+          )
         )}
 
         {/* Post-game actions */}
