@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useState } from 'react'
 import type { GameStatus, CapturedPieces } from '../../hooks/useChessGame'
 import type { Bot } from '../../types'
 import { formatMoveHistory, getMaterialScore, pieceSymbol } from '../../utils/chess'
@@ -12,6 +12,7 @@ interface GamePanelProps {
   onNewGame: () => void
   onUndo: () => void
   onFlip: () => void
+  onResign: () => void
   canUndo: boolean
 }
 
@@ -22,13 +23,15 @@ const STATUS_MESSAGES: Record<GameStatus, string> = {
   checkmate: 'Checkmate!',
   stalemate: 'Stalemate — Draw',
   draw: 'Draw',
+  resigned: 'You resigned',
 }
 
 export default function GamePanel({
   status, moveHistory, capturedPieces, selectedBot, isGameOver,
-  onNewGame, onUndo, onFlip, canUndo,
+  onNewGame, onUndo, onFlip, onResign, canUndo,
 }: GamePanelProps) {
   const moveListRef = useRef<HTMLDivElement>(null)
+  const [resignConfirming, setResignConfirming] = useState(false)
   const pairs = formatMoveHistory(moveHistory)
   const score = getMaterialScore(capturedPieces.w, capturedPieces.b)
 
@@ -88,6 +91,36 @@ export default function GamePanel({
           ⇅
         </button>
       </div>
+
+      {/* Resign */}
+      {status === 'playing' && (
+        resignConfirming ? (
+          <div className="bg-gray-800 rounded-lg p-3 space-y-2">
+            <p className="text-white text-sm text-center">Are you sure you want to resign?</p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => { onResign(); setResignConfirming(false) }}
+                className="flex-1 py-1.5 bg-red-700 hover:bg-red-600 text-white text-sm rounded-lg transition-colors"
+              >
+                Yes, resign
+              </button>
+              <button
+                onClick={() => setResignConfirming(false)}
+                className="flex-1 py-1.5 bg-gray-700 hover:bg-gray-600 text-gray-300 text-sm rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button
+            onClick={() => setResignConfirming(true)}
+            className="w-full py-2 bg-gray-800 hover:bg-gray-700 text-red-400 text-sm font-medium rounded-lg transition-colors"
+          >
+            Resign
+          </button>
+        )
+      )}
 
       {/* Captured pieces */}
       {(capturedPieces.w.length > 0 || capturedPieces.b.length > 0) && (

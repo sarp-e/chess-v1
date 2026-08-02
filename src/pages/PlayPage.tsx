@@ -18,7 +18,7 @@ export default function PlayPage() {
 
   const {
     status, moveHistory, capturedPieces, lastMove,
-    makeMove, makeMoveFromUCI, newGame, undoMove, setThinking,
+    makeMove, makeMoveFromUCI, newGame, undoMove, resign, setThinking,
     fen, turn, isGameOver,
   } = useChessGame()
 
@@ -106,6 +106,7 @@ export default function PlayPage() {
               isGameOver={isGameOver}
               onNewGame={() => setShowBotSelect(true)}
               onUndo={undoMove}
+              onResign={resign}
               onFlip={() => setOrientation(o => o === 'white' ? 'black' : 'white')}
               canUndo={moveHistory.length >= 2}
             />

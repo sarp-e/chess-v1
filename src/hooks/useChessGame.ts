@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef } from 'react'
 import { Chess } from 'chess.js'
 
-export type GameStatus = 'idle' | 'playing' | 'thinking' | 'checkmate' | 'stalemate' | 'draw'
+export type GameStatus = 'idle' | 'playing' | 'thinking' | 'checkmate' | 'stalemate' | 'draw' | 'resigned'
 
 export interface CapturedPieces {
   w: string[]
@@ -85,6 +85,10 @@ export function useChessGame() {
     setStatus('playing')
   }, [updateGameState])
 
+  const resign = useCallback(() => {
+    setStatus('resigned')
+  }, [])
+
   const setThinking = useCallback((val: boolean) => {
     setStatus(prev => {
       if (val) return 'thinking'
@@ -103,9 +107,10 @@ export function useChessGame() {
     makeMoveFromUCI,
     newGame,
     undoMove,
+    resign,
     setThinking,
     fen: game.fen(),
     turn: game.turn(),
-    isGameOver: ['checkmate', 'stalemate', 'draw'].includes(status),
+    isGameOver: ['checkmate', 'stalemate', 'draw', 'resigned'].includes(status),
   }
 }
