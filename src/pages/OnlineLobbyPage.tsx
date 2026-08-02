@@ -43,7 +43,10 @@ export default function OnlineLobbyPage() {
   if (authError) {
     return (
       <div className="flex items-center justify-center min-h-[calc(100vh-56px)]">
-        <p className="text-red-400">Failed to connect. Please refresh and try again.</p>
+        <div className="text-center space-y-2">
+          <p className="text-red-400 font-medium">Online service is unavailable</p>
+          <p className="text-gray-400 text-sm">The database is currently down. Please try again in a few minutes.</p>
+        </div>
       </div>
     )
   }

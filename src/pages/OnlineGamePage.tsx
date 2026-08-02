@@ -43,9 +43,10 @@ export default function OnlineGamePage() {
   if (status === 'error') {
     return (
       <div className="flex items-center justify-center min-h-[calc(100vh-56px)]">
-        <div className="text-center">
-          <p className="text-red-400 mb-4">Could not load game. It may not exist or you may not have access.</p>
-          <button onClick={() => navigate('/play/online')} className="text-blue-400 underline text-sm">
+        <div className="text-center space-y-2">
+          <p className="text-red-400 font-medium">Could not load game</p>
+          <p className="text-gray-400 text-sm">The database may be temporarily down, or this game no longer exists.</p>
+          <button onClick={() => navigate('/play/online')} className="text-blue-400 underline text-sm block mt-3 mx-auto">
             Back to lobby
           </button>
         </div>
