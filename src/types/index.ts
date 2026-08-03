@@ -31,9 +31,13 @@ export interface PuzzleProgress {
   }
 }
 
+export type ColorTheme = 'walnut' | 'slate-mono' | 'championship-green' | 'forest' | 'ocean'
+export type ColorMode = 'system' | 'light' | 'dark'
+
 export interface Settings {
   showLegalMoves: boolean
-  boardTheme: 'classic' | 'wood' | 'tournament'
+  colorTheme: ColorTheme
+  colorMode: ColorMode
   pieceSet: 'standard' | 'cburnett'
 }
 
@@ -49,6 +53,6 @@ export interface Lesson {
 export interface LessonSection {
   heading: string
   body: string
-  fen?: string           // Optional board position to display
-  caption?: string       // Caption for the board position
+  fen?: string
+  caption?: string
 }

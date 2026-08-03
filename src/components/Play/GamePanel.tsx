@@ -44,19 +44,20 @@ export default function GamePanel({
   return (
     <div className="flex flex-col gap-4">
       {/* Bot info */}
-      <div className="bg-gray-800 rounded-lg p-3 flex items-center gap-3">
+      <div className="bg-[var(--panel-alt)] rounded-lg p-3 flex items-center gap-3">
         <span className="text-3xl">{selectedBot.avatar}</span>
         <div>
-          <div className="text-white font-medium">{selectedBot.name}</div>
-          <div className="text-gray-400 text-xs">ELO {selectedBot.elo}</div>
+          <div className="text-[var(--text-primary)] font-medium">{selectedBot.name}</div>
+          <div className="text-[var(--text-muted)] text-xs">ELO {selectedBot.elo}</div>
         </div>
       </div>
 
       {/* Status */}
       <div className={`rounded-lg p-3 text-center font-medium text-sm ${
-        status === 'thinking' ? 'bg-yellow-900/30 text-yellow-400' :
-        status === 'checkmate' || status === 'stalemate' || status === 'draw' ? 'bg-blue-900/30 text-blue-400' :
-        'bg-gray-800 text-gray-300'
+        status === 'thinking' ? 'bg-[var(--warning-soft)] text-[var(--warning)]' :
+        status === 'checkmate' || status === 'stalemate' || status === 'draw' || status === 'resigned'
+          ? 'bg-[var(--accent-soft)] text-[var(--accent)]'
+          : 'bg-[var(--panel-alt)] text-[var(--text-secondary)]'
       }`}>
         {STATUS_MESSAGES[status]}
         {status === 'thinking' && (
@@ -72,20 +73,20 @@ export default function GamePanel({
       <div className="flex gap-2">
         <button
           onClick={onNewGame}
-          className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+          className="flex-1 py-2 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white text-sm font-medium rounded-lg transition-colors"
         >
           New Game
         </button>
         <button
           onClick={onUndo}
           disabled={!canUndo || isGameOver}
-          className="flex-1 py-2 bg-gray-700 hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors"
+          className="flex-1 py-2 bg-[var(--panel-alt)] hover:bg-[var(--border)] disabled:opacity-40 disabled:cursor-not-allowed text-[var(--text-primary)] text-sm font-medium rounded-lg transition-colors"
         >
           Undo
         </button>
         <button
           onClick={onFlip}
-          className="px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-sm rounded-lg transition-colors"
+          className="px-3 py-2 bg-[var(--panel-alt)] hover:bg-[var(--border)] text-[var(--text-primary)] text-sm rounded-lg transition-colors"
           title="Flip board"
         >
           ⇅
@@ -95,18 +96,18 @@ export default function GamePanel({
       {/* Resign */}
       {status === 'playing' && (
         resignConfirming ? (
-          <div className="bg-gray-800 rounded-lg p-3 space-y-2">
-            <p className="text-white text-sm text-center">Are you sure you want to resign?</p>
+          <div className="bg-[var(--panel-alt)] rounded-lg p-3 space-y-2">
+            <p className="text-[var(--text-primary)] text-sm text-center">Are you sure you want to resign?</p>
             <div className="flex gap-2">
               <button
                 onClick={() => { onResign(); setResignConfirming(false) }}
-                className="flex-1 py-1.5 bg-red-700 hover:bg-red-600 text-white text-sm rounded-lg transition-colors"
+                className="flex-1 py-1.5 bg-[var(--danger)] hover:opacity-90 text-white text-sm rounded-lg transition-colors"
               >
                 Yes, resign
               </button>
               <button
                 onClick={() => setResignConfirming(false)}
-                className="flex-1 py-1.5 bg-gray-700 hover:bg-gray-600 text-gray-300 text-sm rounded-lg transition-colors"
+                className="flex-1 py-1.5 bg-[var(--panel-alt)] hover:bg-[var(--border)] text-[var(--text-secondary)] text-sm rounded-lg transition-colors"
               >
                 Cancel
               </button>
@@ -115,7 +116,7 @@ export default function GamePanel({
         ) : (
           <button
             onClick={() => setResignConfirming(true)}
-            className="w-full py-2 bg-gray-800 hover:bg-gray-700 text-red-400 text-sm font-medium rounded-lg transition-colors"
+            className="w-full py-2 bg-[var(--panel-alt)] hover:bg-[var(--border)] text-[var(--danger)] text-sm font-medium rounded-lg transition-colors"
           >
             Resign
           </button>
@@ -124,34 +125,34 @@ export default function GamePanel({
 
       {/* Captured pieces */}
       {(capturedPieces.w.length > 0 || capturedPieces.b.length > 0) && (
-        <div className="bg-gray-800 rounded-lg p-3 space-y-1.5">
+        <div className="bg-[var(--panel-alt)] rounded-lg p-3 space-y-1.5">
           <div className="flex items-center gap-1 flex-wrap">
-            <span className="text-gray-500 text-xs w-14">You took:</span>
-            <span className="text-white text-sm">
+            <span className="text-[var(--text-muted)] text-xs w-14">You took:</span>
+            <span className="text-[var(--text-primary)] text-sm">
               {capturedPieces.w.map(p => pieceSymbol(p)).join(' ')}
             </span>
-            {score > 0 && <span className="text-green-400 text-xs ml-auto">+{score}</span>}
+            {score > 0 && <span className="text-[var(--success)] text-xs ml-auto">+{score}</span>}
           </div>
           <div className="flex items-center gap-1 flex-wrap">
-            <span className="text-gray-500 text-xs w-14">Bot took:</span>
-            <span className="text-white text-sm">
+            <span className="text-[var(--text-muted)] text-xs w-14">Bot took:</span>
+            <span className="text-[var(--text-primary)] text-sm">
               {capturedPieces.b.map(p => pieceSymbol(p)).join(' ')}
             </span>
-            {score < 0 && <span className="text-red-400 text-xs ml-auto">{score}</span>}
+            {score < 0 && <span className="text-[var(--danger)] text-xs ml-auto">{score}</span>}
           </div>
         </div>
       )}
 
       {/* Move history */}
       {moveHistory.length > 0 && (
-        <div className="bg-gray-800 rounded-lg p-3">
-          <div className="text-gray-400 text-xs mb-2">Move History</div>
+        <div className="bg-[var(--panel-alt)] rounded-lg p-3">
+          <div className="text-[var(--text-muted)] text-xs mb-2">Move History</div>
           <div ref={moveListRef} className="max-h-40 overflow-y-auto space-y-0.5">
             {pairs.map(({ moveNumber, white, black }) => (
               <div key={moveNumber} className="flex gap-2 text-sm">
-                <span className="text-gray-600 w-6 text-right">{moveNumber}.</span>
-                <span className="text-white w-14">{white}</span>
-                {black && <span className="text-gray-300">{black}</span>}
+                <span className="text-[var(--text-muted)] w-6 text-right">{moveNumber}.</span>
+                <span className="text-[var(--text-primary)] w-14">{white}</span>
+                {black && <span className="text-[var(--text-secondary)]">{black}</span>}
               </div>
             ))}
           </div>

@@ -13,7 +13,7 @@ export default function App() {
   return (
     <SettingsProvider>
       <BrowserRouter>
-        <div className="min-h-screen bg-gray-950 text-white">
+        <div className="min-h-screen bg-[var(--bg)] text-[var(--text-primary)]">
           <Navbar />
           <Routes>
             <Route path="/" element={<Navigate to="/play" replace />} />

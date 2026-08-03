@@ -134,25 +134,25 @@ export default function PuzzlesPage() {
       {/* Panel */}
       <div className="w-full lg:w-72 xl:w-80 space-y-3">
         {/* Header */}
-        <div className="bg-gray-800 rounded-xl p-4">
+        <div className="bg-[var(--panel-alt)] rounded-xl p-4">
           <div className="flex items-start justify-between mb-2">
             <div>
               <div className="flex items-center gap-2 mb-1">
                 {isDailyPuzzle && (
-                  <span className="text-xs bg-blue-600 text-white px-2 py-0.5 rounded-full">Daily</span>
+                  <span className="text-xs bg-[var(--accent)] text-white px-2 py-0.5 rounded-full">Daily</span>
                 )}
                 {isCompleted && (
-                  <span className="text-xs bg-green-700 text-white px-2 py-0.5 rounded-full">✓ Done</span>
+                  <span className="text-xs bg-[var(--success)] text-white px-2 py-0.5 rounded-full">✓ Done</span>
                 )}
               </div>
-              <h2 className="text-white font-semibold">{currentPuzzle.title}</h2>
-              <div className="text-yellow-400 text-sm mt-0.5">{stars}</div>
+              <h2 className="text-[var(--text-primary)] font-semibold">{currentPuzzle.title}</h2>
+              <div className="text-[var(--warning)] text-sm mt-0.5">{stars}</div>
             </div>
-            <span className="text-xs bg-gray-700 text-gray-300 px-2 py-1 rounded capitalize">
+            <span className="text-xs bg-[var(--panel)] text-[var(--text-secondary)] px-2 py-1 rounded capitalize">
               {currentPuzzle.theme.replace('-', ' ')}
             </span>
           </div>
-          <p className="text-gray-400 text-xs">
+          <p className="text-[var(--text-secondary)] text-xs">
             {currentPuzzle.playerColor === 'w' ? 'White' : 'Black'} to move
           </p>
         </div>
@@ -160,10 +160,10 @@ export default function PuzzlesPage() {
         {/* Status */}
         {feedback && (
           <div className={`rounded-lg p-3 text-sm text-center font-medium ${
-            puzzleState === 'complete' ? 'bg-green-900/30 text-green-400' :
-            puzzleState === 'correct' ? 'bg-green-900/20 text-green-400' :
-            puzzleState === 'incorrect' ? 'bg-red-900/30 text-red-400' :
-            'bg-gray-800 text-gray-300'
+            puzzleState === 'complete' ? 'bg-[var(--success-soft)] text-[var(--success)]' :
+            puzzleState === 'correct'  ? 'bg-[var(--success-soft)] text-[var(--success)]' :
+            puzzleState === 'incorrect' ? 'bg-[var(--danger-soft)] text-[var(--danger)]' :
+            'bg-[var(--panel-alt)] text-[var(--text-secondary)]'
           }`}>
             {feedback}
           </div>
@@ -174,12 +174,12 @@ export default function PuzzlesPage() {
           <button
             onClick={() => { setShowHint(true); setHintUsed(true) }}
             disabled={puzzleState === 'complete'}
-            className="w-full py-2 bg-gray-800 hover:bg-gray-700 disabled:opacity-40 text-gray-300 text-sm rounded-lg transition-colors"
+            className="w-full py-2 bg-[var(--panel-alt)] hover:bg-[var(--border)] disabled:opacity-40 text-[var(--text-secondary)] text-sm rounded-lg transition-colors"
           >
             Show Hint
           </button>
         ) : (
-          <div className="bg-gray-800 rounded-lg p-3 text-gray-400 text-sm italic">
+          <div className="bg-[var(--panel-alt)] rounded-lg p-3 text-[var(--text-secondary)] text-sm italic">
             💡 {currentPuzzle.description}
           </div>
         )}
@@ -188,7 +188,7 @@ export default function PuzzlesPage() {
         {puzzleState !== 'complete' && puzzleState !== 'showing-solution' && (
           <button
             onClick={showSolution}
-            className="w-full py-2 bg-gray-800 hover:bg-gray-700 text-gray-500 text-sm rounded-lg transition-colors"
+            className="w-full py-2 bg-[var(--panel-alt)] hover:bg-[var(--border)] text-[var(--text-muted)] text-sm rounded-lg transition-colors"
           >
             Show Solution
           </button>
@@ -196,29 +196,20 @@ export default function PuzzlesPage() {
 
         {/* Navigation */}
         <div className="flex gap-2">
-          <button
-            onClick={goToPrev}
-            className="flex-1 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm rounded-lg transition-colors"
-          >
+          <button onClick={goToPrev} className="flex-1 py-2 bg-[var(--panel-alt)] hover:bg-[var(--border)] text-[var(--text-secondary)] text-sm rounded-lg transition-colors">
             ← Prev
           </button>
-          <button
-            onClick={goToDaily}
-            className="px-3 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs rounded-lg transition-colors whitespace-nowrap"
-          >
+          <button onClick={goToDaily} className="px-3 py-2 bg-[var(--panel-alt)] hover:bg-[var(--border)] text-[var(--text-secondary)] text-xs rounded-lg transition-colors whitespace-nowrap">
             Today's
           </button>
-          <button
-            onClick={goToNext}
-            className="flex-1 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm rounded-lg transition-colors"
-          >
+          <button onClick={goToNext} className="flex-1 py-2 bg-[var(--panel-alt)] hover:bg-[var(--border)] text-[var(--text-secondary)] text-sm rounded-lg transition-colors">
             Next →
           </button>
         </div>
 
         {/* Puzzle list */}
-        <div className="bg-gray-800 rounded-xl p-3">
-          <div className="text-gray-400 text-xs mb-2">All Puzzles</div>
+        <div className="bg-[var(--panel-alt)] rounded-xl p-3">
+          <div className="text-[var(--text-muted)] text-xs mb-2">All Puzzles</div>
           <div className="grid grid-cols-5 gap-1">
             {PUZZLES.map((p, i) => {
               const pProg = progress[p.id]
@@ -227,10 +218,10 @@ export default function PuzzlesPage() {
                   key={p.id}
                   onClick={() => goToIndex(i)}
                   className={`aspect-square rounded text-xs font-medium transition-colors ${
-                    i === currentIndex ? 'bg-blue-600 text-white' :
-                    pProg?.completed ? 'bg-green-800 text-green-300' :
-                    pProg?.gaveUp ? 'bg-red-900 text-red-400' :
-                    'bg-gray-700 text-gray-400 hover:bg-gray-600'
+                    i === currentIndex      ? 'bg-[var(--accent)] text-white' :
+                    pProg?.completed        ? 'bg-[var(--success-soft)] text-[var(--success)]' :
+                    pProg?.gaveUp           ? 'bg-[var(--danger-soft)] text-[var(--danger)]' :
+                    'bg-[var(--panel)] text-[var(--text-secondary)] hover:bg-[var(--border)]'
                   }`}
                   title={p.title}
                 >

@@ -13,12 +13,6 @@ interface ChessBoardProps {
   lastMove?: { from: string; to: string } | null
 }
 
-const BOARD_THEMES = {
-  classic: { light: '#f0d9b5', dark: '#b58863' },
-  wood: { light: '#e8c99a', dark: '#9c6f3a' },
-  tournament: { light: '#eeeed2', dark: '#769656' },
-}
-
 export default function ChessBoard({
   fen,
   onMove,
@@ -30,8 +24,6 @@ export default function ChessBoard({
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null)
   const [legalMoveSquares, setLegalMoveSquares] = useState<Record<string, React.CSSProperties>>({})
 
-  const theme = BOARD_THEMES[settings.boardTheme]
-
   const getLegalMoves = useCallback((square: Square, game: Chess): Record<string, React.CSSProperties> => {
     if (!settings.showLegalMoves) return {}
     const moves = game.moves({ square, verbose: true })
@@ -40,8 +32,8 @@ export default function ChessBoard({
       if (typeof m === 'object' && 'to' in m) {
         squares[m.to] = {
           background: game.get(m.to as Square)
-            ? 'radial-gradient(circle, rgba(0,0,0,0.15) 85%, transparent 85%)'
-            : 'radial-gradient(circle, rgba(0,0,0,0.15) 25%, transparent 25%)',
+            ? 'radial-gradient(circle, var(--board-move-capture) 85%, transparent 85%)'
+            : 'radial-gradient(circle, var(--board-move-dot) 25%, transparent 25%)',
           borderRadius: '50%',
         }
       }
@@ -88,12 +80,26 @@ export default function ChessBoard({
   }, [disabled, onMove])
 
   const squareStyles: Record<string, React.CSSProperties> = { ...legalMoveSquares }
+
+  // Check highlight (king in check)
+  const game = new Chess(fen)
+  if (game.isCheck()) {
+    const turn = game.turn()
+    for (const row of game.board()) {
+      for (const piece of row) {
+        if (piece && piece.type === 'k' && piece.color === turn) {
+          squareStyles[piece.square] = { backgroundColor: 'var(--board-check)' }
+        }
+      }
+    }
+  }
+
   if (selectedSquare) {
-    squareStyles[selectedSquare] = { backgroundColor: 'rgba(255, 255, 0, 0.4)' }
+    squareStyles[selectedSquare] = { backgroundColor: 'var(--board-highlight-selected)' }
   }
   if (lastMove) {
-    squareStyles[lastMove.from] = { backgroundColor: 'rgba(255, 255, 0, 0.2)' }
-    squareStyles[lastMove.to] = { backgroundColor: 'rgba(255, 255, 0, 0.2)' }
+    squareStyles[lastMove.from] = { backgroundColor: 'var(--board-highlight-last)' }
+    squareStyles[lastMove.to] = { backgroundColor: 'var(--board-highlight-last)' }
   }
 
   return (
@@ -105,8 +111,8 @@ export default function ChessBoard({
           onSquareClick,
           boardOrientation: orientation,
           allowDragging: !disabled,
-          lightSquareStyle: { backgroundColor: theme.light },
-          darkSquareStyle: { backgroundColor: theme.dark },
+          lightSquareStyle: { backgroundColor: 'var(--board-light)' },
+          darkSquareStyle: { backgroundColor: 'var(--board-dark)' },
           squareStyles,
           animationDurationInMs: 150,
         }}

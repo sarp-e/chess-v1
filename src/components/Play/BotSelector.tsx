@@ -15,13 +15,13 @@ export default function BotSelector({ selectedBot, onSelect }: BotSelectorProps)
           onClick={() => onSelect(bot)}
           className={`p-2 rounded-lg border transition-all text-left ${
             selectedBot.id === bot.id
-              ? 'border-blue-500 bg-blue-500/10'
-              : 'border-gray-700 hover:border-gray-500 bg-gray-800/50'
+              ? 'border-[var(--accent)] bg-[var(--accent-soft)]'
+              : 'border-[var(--border)] hover:border-[var(--text-muted)] bg-[var(--panel-alt)]'
           }`}
         >
           <div className="text-xl mb-1">{bot.avatar}</div>
-          <div className="text-white text-xs font-medium leading-tight">{bot.name}</div>
-          <div className="text-gray-500 text-xs">{bot.elo}</div>
+          <div className="text-[var(--text-primary)] text-xs font-medium leading-tight">{bot.name}</div>
+          <div className="text-[var(--text-muted)] text-xs">{bot.elo}</div>
         </button>
       ))}
     </div>

@@ -23,7 +23,6 @@ export default function PlayPage() {
   } = useChessGame()
 
   const handleBestMove = useCallback((uci: string) => {
-    // Apply minimum delay so the bot doesn't respond instantly
     setTimeout(() => {
       makeMoveFromUCI(uci)
       setThinking(false)
@@ -35,11 +34,9 @@ export default function PlayPage() {
     onBestMove: handleBestMove,
   })
 
-  // Trigger AI move when it's the bot's turn
   useEffect(() => {
     if (status === 'playing' && turn === 'b' && !isGameOver) {
       setThinking(true)
-      // Blunder chance: play at reduced depth
       const blunder = Math.random() < selectedBot.blunderChance
       setTimeout(() => {
         findBestMove(fen, blunder ? Math.max(1, selectedBot.depth - 3) : selectedBot.depth)
@@ -75,23 +72,23 @@ export default function PlayPage() {
       {/* Panel */}
       <div className="w-full lg:w-72 xl:w-80 flex flex-col gap-4">
         {showBotSelect ? (
-          <div className="bg-gray-900 rounded-xl p-4 space-y-4">
-            <h2 className="text-white font-semibold">Choose your opponent</h2>
+          <div className="bg-[var(--panel)] rounded-xl p-4 space-y-4">
+            <h2 className="text-[var(--text-primary)] font-semibold">Choose your opponent</h2>
             <BotSelector selectedBot={pendingBot} onSelect={setPendingBot} />
-            <div className="bg-gray-800 rounded-lg p-3">
+            <div className="bg-[var(--panel-alt)] rounded-lg p-3">
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-2xl">{pendingBot.avatar}</span>
                 <div>
-                  <div className="text-white font-medium">{pendingBot.name}</div>
-                  <div className="text-gray-400 text-xs">ELO {pendingBot.elo}</div>
+                  <div className="text-[var(--text-primary)] font-medium">{pendingBot.name}</div>
+                  <div className="text-[var(--text-muted)] text-xs">ELO {pendingBot.elo}</div>
                 </div>
               </div>
-              <p className="text-gray-500 text-xs italic">"{pendingBot.tagline}"</p>
-              <p className="text-gray-400 text-xs mt-2">{pendingBot.bio}</p>
+              <p className="text-[var(--text-muted)] text-xs italic">"{pendingBot.tagline}"</p>
+              <p className="text-[var(--text-secondary)] text-xs mt-2">{pendingBot.bio}</p>
             </div>
             <button
               onClick={handleNewGame}
-              className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+              className="w-full py-2.5 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white font-medium rounded-lg transition-colors"
             >
               Play as White
             </button>
@@ -115,7 +112,6 @@ export default function PlayPage() {
               <div className="flex flex-col gap-2">
                 <button
                   onClick={() => {
-                    // Convert SAN history to UCI for the review page
                     const chess = new Chess()
                     const uciMoves = moveHistory.map(san => {
                       const move = chess.move(san)
@@ -123,13 +119,13 @@ export default function PlayPage() {
                     })
                     navigate('/review', { state: { uciMoves, playerColor: 'white' } })
                   }}
-                  className="w-full py-2.5 bg-gray-800 hover:bg-gray-700 text-white font-medium rounded-lg transition-colors"
+                  className="w-full py-2.5 bg-[var(--panel-alt)] hover:bg-[var(--border)] text-[var(--text-primary)] font-medium rounded-lg transition-colors"
                 >
                   Review Game
                 </button>
                 <button
                   onClick={() => setShowBotSelect(true)}
-                  className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+                  className="w-full py-2.5 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white font-medium rounded-lg transition-colors"
                 >
                   Play Again
                 </button>

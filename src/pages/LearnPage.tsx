@@ -11,10 +11,10 @@ const CATEGORY_LABELS: Record<string, string> = {
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
-  fundamentals: 'bg-purple-900/30 text-purple-300 border-purple-700',
-  opening: 'bg-blue-900/30 text-blue-300 border-blue-700',
-  endgame: 'bg-orange-900/30 text-orange-300 border-orange-700',
-  tactics: 'bg-red-900/30 text-red-300 border-red-700',
+  fundamentals: 'bg-[var(--accent-soft)] text-[var(--accent)] border-[var(--border)]',
+  opening:      'bg-[var(--success-soft)] text-[var(--success)] border-[var(--border)]',
+  endgame:      'bg-[var(--warning-soft)] text-[var(--warning)] border-[var(--border)]',
+  tactics:      'bg-[var(--danger-soft)] text-[var(--danger)] border-[var(--border)]',
 }
 
 export default function LearnPage() {
@@ -32,7 +32,7 @@ export default function LearnPage() {
         {/* Breadcrumb */}
         <button
           onClick={() => { setSelectedLesson(null); setSectionIndex(0) }}
-          className="text-gray-400 hover:text-white text-sm mb-4 flex items-center gap-1 transition-colors"
+          className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-sm mb-4 flex items-center gap-1 transition-colors"
         >
           ← Back to Lessons
         </button>
@@ -42,10 +42,10 @@ export default function LearnPage() {
           <span className={`text-xs px-2 py-1 rounded border capitalize ${CATEGORY_COLORS[selectedLesson.category]}`}>
             {CATEGORY_LABELS[selectedLesson.category]}
           </span>
-          <h1 className="text-white text-2xl font-bold mt-2">{selectedLesson.title}</h1>
+          <h1 className="text-[var(--text-primary)] text-2xl font-bold mt-2">{selectedLesson.title}</h1>
           <div className="flex items-center gap-3 mt-1">
-            <span className="text-yellow-400 text-sm">{'★'.repeat(selectedLesson.difficulty)}{'☆'.repeat(3 - selectedLesson.difficulty)}</span>
-            <span className="text-gray-500 text-xs">{selectedLesson.sections.length} sections</span>
+            <span className="text-[var(--warning)] text-sm">{'★'.repeat(selectedLesson.difficulty)}{'☆'.repeat(3 - selectedLesson.difficulty)}</span>
+            <span className="text-[var(--text-muted)] text-xs">{selectedLesson.sections.length} sections</span>
           </div>
         </div>
 
@@ -56,7 +56,7 @@ export default function LearnPage() {
               key={i}
               onClick={() => setSectionIndex(i)}
               className={`h-1.5 flex-1 rounded-full transition-colors ${
-                i <= sectionIndex ? 'bg-blue-500' : 'bg-gray-700'
+                i <= sectionIndex ? 'bg-[var(--accent)]' : 'bg-[var(--panel-alt)]'
               }`}
             />
           ))}
@@ -65,8 +65,8 @@ export default function LearnPage() {
         {/* Section content */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div>
-            <h2 className="text-white text-xl font-semibold mb-3">{section.heading}</h2>
-            <p className="text-gray-300 leading-relaxed">{section.body}</p>
+            <h2 className="text-[var(--text-primary)] text-xl font-semibold mb-3">{section.heading}</h2>
+            <p className="text-[var(--text-secondary)] leading-relaxed">{section.body}</p>
           </div>
 
           {section.fen && (
@@ -76,14 +76,14 @@ export default function LearnPage() {
                   options={{
                     position: section.fen,
                     allowDragging: false,
-                    lightSquareStyle: { backgroundColor: '#f0d9b5' },
-                    darkSquareStyle: { backgroundColor: '#b58863' },
+                    lightSquareStyle: { backgroundColor: 'var(--board-light)' },
+                    darkSquareStyle: { backgroundColor: 'var(--board-dark)' },
                     animationDurationInMs: 0,
                   }}
                 />
               </div>
               {section.caption && (
-                <p className="text-gray-500 text-xs text-center mt-2 italic">{section.caption}</p>
+                <p className="text-[var(--text-muted)] text-xs text-center mt-2 italic">{section.caption}</p>
               )}
             </div>
           )}
@@ -94,7 +94,7 @@ export default function LearnPage() {
           <button
             onClick={() => setSectionIndex(i => Math.max(0, i - 1))}
             disabled={sectionIndex === 0}
-            className="px-4 py-2 bg-gray-800 hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm rounded-lg transition-colors"
+            className="px-4 py-2 bg-[var(--panel-alt)] hover:bg-[var(--border)] disabled:opacity-40 disabled:cursor-not-allowed text-[var(--text-primary)] text-sm rounded-lg transition-colors"
           >
             ← Previous
           </button>
@@ -102,14 +102,14 @@ export default function LearnPage() {
           {isLast ? (
             <button
               onClick={() => { setSelectedLesson(null); setSectionIndex(0) }}
-              className="px-4 py-2 bg-green-700 hover:bg-green-600 text-white text-sm font-medium rounded-lg transition-colors"
+              className="px-4 py-2 bg-[var(--success)] hover:opacity-90 text-white text-sm font-medium rounded-lg transition-colors"
             >
               Complete ✓
             </button>
           ) : (
             <button
               onClick={() => setSectionIndex(i => i + 1)}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors"
+              className="px-4 py-2 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white text-sm rounded-lg transition-colors"
             >
               Next →
             </button>
@@ -121,15 +121,15 @@ export default function LearnPage() {
 
   return (
     <div className="max-w-4xl mx-auto p-4 lg:p-6">
-      <h1 className="text-white text-2xl font-bold mb-1">Learn Chess</h1>
-      <p className="text-gray-400 text-sm mb-6">Study openings, endgames, tactics, and fundamentals.</p>
+      <h1 className="text-[var(--text-primary)] text-2xl font-bold mb-1">Learn Chess</h1>
+      <p className="text-[var(--text-secondary)] text-sm mb-6">Study openings, endgames, tactics, and fundamentals.</p>
 
       {categories.map(cat => {
         const lessons = LESSONS.filter(l => l.category === cat)
         if (!lessons.length) return null
         return (
           <div key={cat} className="mb-8">
-            <h2 className="text-gray-300 font-semibold text-sm uppercase tracking-wider mb-3">
+            <h2 className="text-[var(--text-secondary)] font-semibold text-sm uppercase tracking-wider mb-3">
               {CATEGORY_LABELS[cat]}
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -137,21 +137,21 @@ export default function LearnPage() {
                 <button
                   key={lesson.id}
                   onClick={() => { setSelectedLesson(lesson); setSectionIndex(0) }}
-                  className="bg-gray-800 hover:bg-gray-750 border border-gray-700 hover:border-gray-600 rounded-xl p-4 text-left transition-all group"
+                  className="bg-[var(--panel-alt)] hover:bg-[var(--border)] border border-[var(--border)] rounded-xl p-4 text-left transition-all group"
                 >
                   <div className="flex items-start justify-between mb-2">
                     <span className={`text-xs px-2 py-0.5 rounded border capitalize ${CATEGORY_COLORS[cat]}`}>
                       {CATEGORY_LABELS[cat]}
                     </span>
-                    <span className="text-yellow-400 text-xs">
+                    <span className="text-[var(--warning)] text-xs">
                       {'★'.repeat(lesson.difficulty)}{'☆'.repeat(3 - lesson.difficulty)}
                     </span>
                   </div>
-                  <h3 className="text-white font-medium group-hover:text-blue-300 transition-colors">
+                  <h3 className="text-[var(--text-primary)] font-medium group-hover:text-[var(--accent)] transition-colors">
                     {lesson.title}
                   </h3>
-                  <p className="text-gray-500 text-xs mt-1 leading-relaxed">{lesson.description}</p>
-                  <p className="text-gray-600 text-xs mt-2">{lesson.sections.length} sections</p>
+                  <p className="text-[var(--text-muted)] text-xs mt-1 leading-relaxed">{lesson.description}</p>
+                  <p className="text-[var(--text-muted)] text-xs mt-2">{lesson.sections.length} sections</p>
                 </button>
               ))}
             </div>

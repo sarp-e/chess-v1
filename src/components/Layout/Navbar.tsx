@@ -1,6 +1,15 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useSettings } from '../../context/SettingsContext'
+import type { ColorTheme } from '../../types'
+
+const THEMES: { id: ColorTheme; label: string; light: string; dark: string }[] = [
+  { id: 'walnut',              label: 'Walnut',        light: '#f0d9b5', dark: '#b58863' },
+  { id: 'slate-mono',         label: 'Slate Mono',    light: '#eaeaea', dark: '#9a9a9a' },
+  { id: 'championship-green', label: 'Championship',  light: '#eeeed2', dark: '#6f9a4c' },
+  { id: 'forest',             label: 'Forest',        light: '#e5dcc3', dark: '#7c8f5a' },
+  { id: 'ocean',              label: 'Ocean',         light: '#e2eef0', dark: '#4d8a97' },
+]
 
 export default function Navbar() {
   const location = useLocation()
@@ -13,7 +22,9 @@ export default function Navbar() {
       <Link
         to={to}
         className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
-          active ? 'bg-white/20 text-white' : 'text-white/70 hover:text-white hover:bg-white/10'
+          active
+            ? 'bg-[var(--accent-soft)] text-[var(--accent)]'
+            : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--overlay)]'
         }`}
       >
         {label}
@@ -22,9 +33,9 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="bg-gray-900 border-b border-gray-800 px-4 py-3 flex items-center justify-between relative z-50">
+    <nav className="bg-[var(--panel)] border-b border-[var(--border)] px-4 py-3 flex items-center justify-between relative z-50">
       <div className="flex items-center gap-6">
-        <Link to="/play" className="text-white font-bold text-lg tracking-tight">
+        <Link to="/play" className="text-[var(--text-primary)] font-bold text-lg tracking-tight">
           ♟ Chess
         </Link>
         <div className="flex items-center gap-1">
@@ -38,7 +49,7 @@ export default function Navbar() {
       <div className="relative">
         <button
           onClick={() => setSettingsOpen(o => !o)}
-          className="text-white/70 hover:text-white p-1.5 rounded hover:bg-white/10 transition-colors"
+          className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] p-1.5 rounded hover:bg-[var(--overlay)] transition-colors"
           title="Settings"
         >
           ⚙️
@@ -47,31 +58,56 @@ export default function Navbar() {
         {settingsOpen && (
           <>
             <div className="fixed inset-0" onClick={() => setSettingsOpen(false)} />
-            <div className="absolute right-0 top-9 bg-gray-800 border border-gray-700 rounded-lg p-4 w-64 shadow-xl">
-              <h3 className="text-white font-medium mb-3 text-sm">Settings</h3>
+            <div className="absolute right-0 top-9 bg-[var(--panel)] border border-[var(--border)] rounded-lg p-4 w-64 shadow-xl">
+              <h3 className="text-[var(--text-primary)] font-medium mb-3 text-sm">Settings</h3>
 
               <div className="space-y-4">
+                {/* Theme swatches */}
                 <div>
-                  <label className="text-gray-400 text-xs mb-1.5 block">Board Theme</label>
-                  <div className="flex gap-1">
-                    {(['classic', 'wood', 'tournament'] as const).map(theme => (
+                  <label className="text-[var(--text-muted)] text-xs mb-1.5 block">Theme</label>
+                  <div className="grid grid-cols-5 gap-1.5">
+                    {THEMES.map(t => (
                       <button
-                        key={theme}
-                        onClick={() => updateSettings({ boardTheme: theme })}
+                        key={t.id}
+                        onClick={() => updateSettings({ colorTheme: t.id })}
+                        title={t.label}
+                        className={`aspect-square rounded-md border-2 transition-colors ${
+                          settings.colorTheme === t.id
+                            ? 'border-[var(--accent)]'
+                            : 'border-transparent hover:border-[var(--border)]'
+                        }`}
+                        style={{ background: `linear-gradient(135deg, ${t.light} 50%, ${t.dark} 50%)` }}
+                      />
+                    ))}
+                  </div>
+                  <div className="text-[var(--text-muted)] text-xs mt-1 text-center">
+                    {THEMES.find(t => t.id === settings.colorTheme)?.label}
+                  </div>
+                </div>
+
+                {/* Appearance: system / light / dark */}
+                <div>
+                  <label className="text-[var(--text-muted)] text-xs mb-1.5 block">Appearance</label>
+                  <div className="flex gap-1">
+                    {(['system', 'light', 'dark'] as const).map(mode => (
+                      <button
+                        key={mode}
+                        onClick={() => updateSettings({ colorMode: mode })}
                         className={`flex-1 py-1 text-xs rounded capitalize transition-colors ${
-                          settings.boardTheme === theme
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                          settings.colorMode === mode
+                            ? 'bg-[var(--accent)] text-white'
+                            : 'bg-[var(--panel-alt)] text-[var(--text-secondary)] hover:bg-[var(--border)]'
                         }`}
                       >
-                        {theme}
+                        {mode}
                       </button>
                     ))}
                   </div>
                 </div>
 
+                {/* Piece set */}
                 <div>
-                  <label className="text-gray-400 text-xs mb-1.5 block">Piece Set</label>
+                  <label className="text-[var(--text-muted)] text-xs mb-1.5 block">Piece Set</label>
                   <div className="flex gap-1">
                     {(['standard', 'cburnett'] as const).map(set => (
                       <button
@@ -79,8 +115,8 @@ export default function Navbar() {
                         onClick={() => updateSettings({ pieceSet: set })}
                         className={`flex-1 py-1 text-xs rounded capitalize transition-colors ${
                           settings.pieceSet === set
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                            ? 'bg-[var(--accent)] text-white'
+                            : 'bg-[var(--panel-alt)] text-[var(--text-secondary)] hover:bg-[var(--border)]'
                         }`}
                       >
                         {set}
@@ -89,12 +125,13 @@ export default function Navbar() {
                   </div>
                 </div>
 
+                {/* Show legal moves */}
                 <div className="flex items-center justify-between">
-                  <label className="text-gray-400 text-xs">Show Legal Moves</label>
+                  <label className="text-[var(--text-muted)] text-xs">Show Legal Moves</label>
                   <button
                     onClick={() => updateSettings({ showLegalMoves: !settings.showLegalMoves })}
                     className={`w-10 h-5 rounded-full transition-colors relative ${
-                      settings.showLegalMoves ? 'bg-blue-600' : 'bg-gray-600'
+                      settings.showLegalMoves ? 'bg-[var(--accent)]' : 'bg-[var(--panel-alt)]'
                     }`}
                   >
                     <span

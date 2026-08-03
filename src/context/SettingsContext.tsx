@@ -3,7 +3,8 @@ import type { Settings } from '../types'
 
 const DEFAULT_SETTINGS: Settings = {
   showLegalMoves: true,
-  boardTheme: 'classic',
+  colorTheme: 'walnut',
+  colorMode: 'system',
   pieceSet: 'standard',
 }
 
@@ -31,9 +32,30 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
 
   const [settings, dispatch] = useReducer(settingsReducer, initial)
 
+  // Persist to localStorage
   useEffect(() => {
     localStorage.setItem('chess_settings', JSON.stringify(settings))
   }, [settings])
+
+  // Apply theme + mode to <html> and track system preference changes
+  useEffect(() => {
+    const root = document.documentElement
+    root.dataset.theme = settings.colorTheme
+
+    const apply = () => {
+      const resolved = settings.colorMode === 'system'
+        ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+        : settings.colorMode
+      root.dataset.mode = resolved
+    }
+    apply()
+
+    if (settings.colorMode === 'system') {
+      const mq = window.matchMedia('(prefers-color-scheme: dark)')
+      mq.addEventListener('change', apply)
+      return () => mq.removeEventListener('change', apply)
+    }
+  }, [settings.colorTheme, settings.colorMode])
 
   const updateSettings = (partial: Partial<Settings>) =>
     dispatch({ type: 'UPDATE', payload: partial })

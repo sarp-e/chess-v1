@@ -6,9 +6,9 @@ import ChessBoard from '../components/Board/ChessBoard'
 
 function StatusBanner({ label, sub }: { label: string; sub?: string }) {
   return (
-    <div className="bg-gray-900 rounded-xl p-4 text-center">
-      <div className="text-white font-semibold">{label}</div>
-      {sub && <div className="text-gray-400 text-sm mt-1">{sub}</div>}
+    <div className="bg-[var(--panel-alt)] rounded-xl p-4 text-center">
+      <div className="text-[var(--text-primary)] font-semibold">{label}</div>
+      {sub && <div className="text-[var(--text-secondary)] text-sm mt-1">{sub}</div>}
     </div>
   )
 }
@@ -30,7 +30,6 @@ export default function OnlineGamePage() {
     makeMove, resign, offerDraw, acceptDraw, declineDraw, requestRematch,
   } = useOnlineGame(gameId ?? '', userId ?? '')
 
-  // Navigate to rematch game once we have an ID
   useEffect(() => {
     if (rematchGameId) navigate(`/play/online/${rematchGameId}`)
   }, [rematchGameId, navigate])
@@ -44,7 +43,7 @@ export default function OnlineGamePage() {
   if (!userId || status === 'loading') {
     return (
       <div className="flex items-center justify-center min-h-[calc(100vh-56px)]">
-        <div className="text-gray-400 text-sm">Loading game…</div>
+        <div className="text-[var(--text-muted)] text-sm">Loading game…</div>
       </div>
     )
   }
@@ -53,9 +52,9 @@ export default function OnlineGamePage() {
     return (
       <div className="flex items-center justify-center min-h-[calc(100vh-56px)]">
         <div className="text-center space-y-2">
-          <p className="text-red-400 font-medium">Could not load game</p>
-          <p className="text-gray-400 text-sm">The database may be temporarily down, or this game no longer exists.</p>
-          <button onClick={() => navigate('/play/online')} className="text-blue-400 underline text-sm block mt-3 mx-auto">
+          <p className="text-[var(--danger)] font-medium">Could not load game</p>
+          <p className="text-[var(--text-secondary)] text-sm">The database may be temporarily down, or this game no longer exists.</p>
+          <button onClick={() => navigate('/play/online')} className="text-[var(--accent)] underline text-sm block mt-3 mx-auto">
             Back to lobby
           </button>
         </div>
@@ -89,17 +88,17 @@ export default function OnlineGamePage() {
 
         {/* Waiting for opponent */}
         {status === 'waiting' && (
-          <div className="bg-gray-900 rounded-xl p-4 space-y-3">
-            <div className="text-white font-semibold text-center">Waiting for opponent</div>
-            <p className="text-gray-400 text-sm text-center">Share this link to invite a friend:</p>
+          <div className="bg-[var(--panel-alt)] rounded-xl p-4 space-y-3">
+            <div className="text-[var(--text-primary)] font-semibold text-center">Waiting for opponent</div>
+            <p className="text-[var(--text-secondary)] text-sm text-center">Share this link to invite a friend:</p>
             <button
               onClick={handleCopyLink}
-              className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+              className="w-full py-2 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white text-sm font-medium rounded-lg transition-colors"
             >
               {copied ? 'Copied!' : 'Copy invite link'}
             </button>
-            <div className="flex items-center justify-center gap-2 text-gray-500 text-xs">
-              <span className="inline-block w-3 h-3 border-2 border-gray-500 border-t-transparent rounded-full animate-spin" />
+            <div className="flex items-center justify-center gap-2 text-[var(--text-muted)] text-xs">
+              <span className="inline-block w-3 h-3 border-2 border-[var(--text-muted)] border-t-transparent rounded-full animate-spin" />
               Waiting…
             </div>
           </div>
@@ -115,18 +114,18 @@ export default function OnlineGamePage() {
 
         {/* Incoming draw offer */}
         {incomingDrawOffer && (
-          <div className="bg-gray-900 rounded-xl p-4 space-y-3">
-            <p className="text-white text-sm text-center font-medium">Opponent offers a draw</p>
+          <div className="bg-[var(--panel-alt)] rounded-xl p-4 space-y-3">
+            <p className="text-[var(--text-primary)] text-sm text-center font-medium">Opponent offers a draw</p>
             <div className="flex gap-2">
               <button
                 onClick={acceptDraw}
-                className="flex-1 py-2 bg-green-700 hover:bg-green-600 text-white text-sm rounded-lg transition-colors"
+                className="flex-1 py-2 bg-[var(--success)] hover:opacity-90 text-white text-sm rounded-lg transition-colors"
               >
                 Accept
               </button>
               <button
                 onClick={declineDraw}
-                className="flex-1 py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 text-sm rounded-lg transition-colors"
+                className="flex-1 py-2 bg-[var(--panel-alt)] hover:bg-[var(--border)] text-[var(--text-secondary)] text-sm rounded-lg transition-colors"
               >
                 Decline
               </button>
@@ -142,8 +141,8 @@ export default function OnlineGamePage() {
         {/* Active game actions */}
         {status === 'active' && (
           confirming ? (
-            <div className="bg-gray-900 rounded-xl p-4 space-y-3">
-              <p className="text-white text-sm text-center">
+            <div className="bg-[var(--panel-alt)] rounded-xl p-4 space-y-3">
+              <p className="text-[var(--text-primary)] text-sm text-center">
                 {confirming === 'resign' ? 'Are you sure you want to resign?' : 'Are you sure you want to offer a draw?'}
               </p>
               <div className="flex gap-2">
@@ -155,15 +154,15 @@ export default function OnlineGamePage() {
                   }}
                   className={`flex-1 py-2 text-white text-sm rounded-lg transition-colors ${
                     confirming === 'resign'
-                      ? 'bg-red-700 hover:bg-red-600'
-                      : 'bg-green-700 hover:bg-green-600'
+                      ? 'bg-[var(--danger)] hover:opacity-90'
+                      : 'bg-[var(--success)] hover:opacity-90'
                   }`}
                 >
                   Yes
                 </button>
                 <button
                   onClick={() => setConfirming(null)}
-                  className="flex-1 py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 text-sm rounded-lg transition-colors"
+                  className="flex-1 py-2 bg-[var(--panel-alt)] hover:bg-[var(--border)] text-[var(--text-secondary)] text-sm rounded-lg transition-colors"
                 >
                   Cancel
                 </button>
@@ -174,13 +173,13 @@ export default function OnlineGamePage() {
               <button
                 onClick={() => setConfirming('draw')}
                 disabled={drawOfferPending || incomingDrawOffer}
-                className="flex-1 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 py-2 bg-[var(--panel-alt)] hover:bg-[var(--border)] text-[var(--text-secondary)] text-sm rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {drawOfferPending ? 'Draw offered…' : 'Draw'}
               </button>
               <button
                 onClick={() => setConfirming('resign')}
-                className="flex-1 py-2 bg-gray-800 hover:bg-gray-700 text-red-400 text-sm rounded-lg transition-colors"
+                className="flex-1 py-2 bg-[var(--panel-alt)] hover:bg-[var(--border)] text-[var(--danger)] text-sm rounded-lg transition-colors"
               >
                 Resign
               </button>
@@ -193,19 +192,19 @@ export default function OnlineGamePage() {
           <div className="flex flex-col gap-2">
             <button
               onClick={requestRematch}
-              className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+              className="w-full py-2.5 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white font-medium rounded-lg transition-colors"
             >
               Rematch
             </button>
             <button
               onClick={() => navigate('/review', { state: { uciMoves: moves, playerColor: myColor ?? 'white' } })}
-              className="w-full py-2.5 bg-gray-800 hover:bg-gray-700 text-white font-medium rounded-lg transition-colors"
+              className="w-full py-2.5 bg-[var(--panel-alt)] hover:bg-[var(--border)] text-[var(--text-primary)] font-medium rounded-lg transition-colors"
             >
               Review Game
             </button>
             <button
               onClick={() => navigate('/play/online')}
-              className="w-full py-2.5 bg-gray-700 hover:bg-gray-600 text-gray-300 font-medium rounded-lg transition-colors"
+              className="w-full py-2.5 bg-[var(--panel-alt)] hover:bg-[var(--border)] text-[var(--text-secondary)] font-medium rounded-lg transition-colors"
             >
               Back to lobby
             </button>
