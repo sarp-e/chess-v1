@@ -80,6 +80,7 @@ export default function OnlineGamePage() {
           orientation={myColor ?? 'white'}
           disabled={!isMyTurn}
           lastMove={lastMove}
+          playerColor={myColor === 'white' ? 'w' : myColor === 'black' ? 'b' : undefined}
         />
       </div>
 

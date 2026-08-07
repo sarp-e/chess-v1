@@ -39,6 +39,7 @@ export interface Settings {
   colorTheme: ColorTheme
   colorMode: ColorMode
   pieceSet: 'standard' | 'cburnett'
+  allowPremove: boolean
 }
 
 export interface Lesson {

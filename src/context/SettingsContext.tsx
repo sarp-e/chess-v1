@@ -6,6 +6,7 @@ const DEFAULT_SETTINGS: Settings = {
   colorTheme: 'walnut',
   colorMode: 'system',
   pieceSet: 'standard',
+  allowPremove: false,
 }
 
 type SettingsAction = { type: 'UPDATE'; payload: Partial<Settings> }

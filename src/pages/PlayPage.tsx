@@ -66,6 +66,7 @@ export default function PlayPage() {
           orientation={orientation}
           disabled={turn !== 'w' || status !== 'playing'}
           lastMove={lastMove}
+          playerColor="w"
         />
       </div>
 

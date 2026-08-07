@@ -58,7 +58,7 @@ export default function Navbar() {
         {settingsOpen && (
           <>
             <div className="fixed inset-0" onClick={() => setSettingsOpen(false)} />
-            <div className="absolute right-0 top-9 bg-[var(--panel)] border border-[var(--border)] rounded-lg p-4 w-64 shadow-xl">
+            <div className="absolute right-0 top-9 bg-[var(--panel)] border border-[var(--border)] rounded-lg p-4 w-64 shadow-xl max-h-[calc(100vh-4.5rem)] overflow-y-auto">
               <h3 className="text-[var(--text-primary)] font-medium mb-3 text-sm">Settings</h3>
 
               <div className="space-y-4">
@@ -135,8 +135,25 @@ export default function Navbar() {
                     }`}
                   >
                     <span
-                      className={`absolute top-0.5 w-4 h-4 bg-white rounded-full transition-transform ${
+                      className={`absolute left-0 top-0.5 w-4 h-4 bg-white rounded-full transition-transform ${
                         settings.showLegalMoves ? 'translate-x-5' : 'translate-x-0.5'
+                      }`}
+                    />
+                  </button>
+                </div>
+
+                {/* Allow premoves */}
+                <div className="flex items-center justify-between">
+                  <label className="text-[var(--text-muted)] text-xs">Allow Premoves</label>
+                  <button
+                    onClick={() => updateSettings({ allowPremove: !settings.allowPremove })}
+                    className={`w-10 h-5 rounded-full transition-colors relative ${
+                      settings.allowPremove ? 'bg-[var(--accent)]' : 'bg-[var(--panel-alt)]'
+                    }`}
+                  >
+                    <span
+                      className={`absolute left-0 top-0.5 w-4 h-4 bg-white rounded-full transition-transform ${
+                        settings.allowPremove ? 'translate-x-5' : 'translate-x-0.5'
                       }`}
                     />
                   </button>
