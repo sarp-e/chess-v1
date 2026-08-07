@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { getOrCreateUser } from '../lib/auth'
+import { useAuth } from '../context/AuthContext'
 import { useOnlineGame } from '../hooks/useOnlineGame'
 import ChessBoard from '../components/Board/ChessBoard'
 
@@ -16,19 +16,15 @@ function StatusBanner({ label, sub }: { label: string; sub?: string }) {
 export default function OnlineGamePage() {
   const { gameId } = useParams<{ gameId: string }>()
   const navigate = useNavigate()
-  const [userId, setUserId] = useState<string | null>(null)
+  const { user } = useAuth()
   const [copied, setCopied] = useState(false)
   const [confirming, setConfirming] = useState<'draw' | 'resign' | null>(null)
-
-  useEffect(() => {
-    getOrCreateUser().then(setUserId).catch(() => navigate('/play/online'))
-  }, [navigate])
 
   const {
     fen, moves, status, result, myColor, isMyTurn, lastMove,
     drawOfferPending, incomingDrawOffer, rematchGameId,
     makeMove, resign, offerDraw, acceptDraw, declineDraw, requestRematch,
-  } = useOnlineGame(gameId ?? '', userId ?? '')
+  } = useOnlineGame(gameId ?? '', user!.id)
 
   useEffect(() => {
     if (rematchGameId) navigate(`/play/online/${rematchGameId}`)
@@ -40,7 +36,7 @@ export default function OnlineGamePage() {
     setTimeout(() => setCopied(false), 2000)
   }
 
-  if (!userId || status === 'loading') {
+  if (status === 'loading') {
     return (
       <div className="flex items-center justify-center min-h-[calc(100vh-56px)]">
         <div className="text-[var(--text-muted)] text-sm">Loading game…</div>

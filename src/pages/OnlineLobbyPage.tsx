@@ -1,22 +1,16 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
-import { getOrCreateUser } from '../lib/auth'
+import { useAuth } from '../context/AuthContext'
 import { useMatchmaking } from '../hooks/useMatchmaking'
 
 export default function OnlineLobbyPage() {
   const navigate = useNavigate()
-  const [userId, setUserId] = useState<string | null>(null)
-  const [authError, setAuthError] = useState(false)
+  const { user } = useAuth()
+  const userId = user!.id
   const [creatingGame, setCreatingGame] = useState(false)
 
-  useEffect(() => {
-    getOrCreateUser()
-      .then(setUserId)
-      .catch((e) => { console.error('Auth error:', e); setAuthError(true) })
-  }, [])
-
-  const { status: mmStatus, gameId: mmGameId, joinQueue, leaveQueue } = useMatchmaking(userId ?? '')
+  const { status: mmStatus, gameId: mmGameId, joinQueue, leaveQueue } = useMatchmaking(userId)
 
   useEffect(() => {
     if (mmStatus === 'matched' && mmGameId) {
@@ -25,7 +19,6 @@ export default function OnlineLobbyPage() {
   }, [mmStatus, mmGameId, navigate])
 
   const handleCreateGame = async () => {
-    if (!userId) return
     setCreatingGame(true)
     const { data, error } = await supabase
       .from('games')
@@ -37,25 +30,6 @@ export default function OnlineLobbyPage() {
     if (!error && data) {
       navigate(`/play/online/${data.id}`)
     }
-  }
-
-  if (authError) {
-    return (
-      <div className="flex items-center justify-center min-h-[calc(100vh-56px)]">
-        <div className="text-center space-y-2">
-          <p className="text-[var(--danger)] font-medium">Online service is unavailable</p>
-          <p className="text-[var(--text-secondary)] text-sm">The database is currently down. Please try again in a few minutes.</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (!userId) {
-    return (
-      <div className="flex items-center justify-center min-h-[calc(100vh-56px)]">
-        <div className="text-[var(--text-muted)] text-sm">Connecting…</div>
-      </div>
-    )
   }
 
   return (
