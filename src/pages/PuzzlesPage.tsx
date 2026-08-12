@@ -16,7 +16,7 @@ export default function PuzzlesPage() {
   const [moveIndex, setMoveIndex] = useState(0)
   const [puzzleState, setPuzzleState] = useState<PuzzleState>('idle')
   const [hintUsed, setHintUsed] = useState(false)
-  const [showHint, setShowHint] = useState(false)
+  const [hintSquare, setHintSquare] = useState<string | null>(null)
   const [feedback, setFeedback] = useState('')
 
   const resetPuzzle = useCallback(() => {
@@ -24,7 +24,7 @@ export default function PuzzlesPage() {
     setMoveIndex(0)
     setPuzzleState('idle')
     setHintUsed(false)
-    setShowHint(false)
+    setHintSquare(null)
     setFeedback('')
   }, [currentPuzzle])
 
@@ -48,6 +48,25 @@ export default function PuzzlesPage() {
     }, 400)
   }, [currentPuzzle])
 
+  // Shared by a correctly-played move and by "Show Answer" auto-playing the move for you.
+  const advanceAfterCorrectMove = useCallback((game: Chess) => {
+    setFen(game.fen())
+    setHintSquare(null)
+    const nextPlayerMoveIndex = moveIndex + 2
+    const solutionDone = nextPlayerMoveIndex >= currentPuzzle.solution.length
+
+    if (solutionDone || moveIndex + 1 >= currentPuzzle.solution.length) {
+      setPuzzleState('complete')
+      setFeedback('Puzzle complete! Well done.')
+      markCompleted(currentPuzzle.id, hintUsed, false)
+    } else {
+      setPuzzleState('correct')
+      setFeedback('Correct! Keep going.')
+      playOpponentMove(game, moveIndex + 1)
+      setMoveIndex(nextPlayerMoveIndex)
+    }
+  }, [moveIndex, currentPuzzle, hintUsed, markCompleted, playOpponentMove])
+
   const handleMove = useCallback((from: string, to: string): boolean => {
     if (puzzleState === 'complete' || puzzleState === 'showing-solution') return false
     if (puzzleState === 'idle') setPuzzleState('playing')
@@ -65,20 +84,7 @@ export default function PuzzlesPage() {
     const isCorrect = playedUCI === expectedUCI || playedUCI === expectedUCI.slice(0, 4)
 
     if (isCorrect) {
-      setFen(game.fen())
-      const nextPlayerMoveIndex = moveIndex + 2
-      const solutionDone = nextPlayerMoveIndex >= currentPuzzle.solution.length
-
-      if (solutionDone || moveIndex + 1 >= currentPuzzle.solution.length) {
-        setPuzzleState('complete')
-        setFeedback('Puzzle complete! Well done.')
-        markCompleted(currentPuzzle.id, hintUsed, false)
-      } else {
-        setPuzzleState('correct')
-        setFeedback('Correct! Keep going.')
-        playOpponentMove(game, moveIndex + 1)
-        setMoveIndex(nextPlayerMoveIndex)
-      }
+      advanceAfterCorrectMove(game)
     } else {
       setPuzzleState('incorrect')
       setFeedback('Incorrect — try again.')
@@ -90,7 +96,30 @@ export default function PuzzlesPage() {
     }
 
     return isCorrect
-  }, [puzzleState, moveIndex, fen, currentPuzzle, hintUsed, markCompleted, playOpponentMove])
+  }, [puzzleState, moveIndex, fen, currentPuzzle, advanceAfterCorrectMove])
+
+  // Hint, stage 1: highlight the piece that should move.
+  const handleShowHint = useCallback(() => {
+    if (puzzleState === 'idle') setPuzzleState('playing')
+    setHintUsed(true)
+    setHintSquare(currentPuzzle.solution[moveIndex].slice(0, 2))
+  }, [puzzleState, currentPuzzle, moveIndex])
+
+  // Hint, stage 2 (only reachable after stage 1): play the move for the user.
+  const handleShowAnswer = useCallback(() => {
+    const expectedUCI = currentPuzzle.solution[moveIndex]
+    const game = new Chess(fen)
+    try {
+      game.move({
+        from: expectedUCI.slice(0, 2),
+        to: expectedUCI.slice(2, 4),
+        promotion: expectedUCI.length > 4 ? expectedUCI[4] : 'q',
+      })
+    } catch {
+      return
+    }
+    advanceAfterCorrectMove(game)
+  }, [currentPuzzle, moveIndex, fen, advanceAfterCorrectMove])
 
   const showSolution = useCallback(() => {
     setPuzzleState('showing-solution')
@@ -128,6 +157,7 @@ export default function PuzzlesPage() {
           onMove={handleMove}
           orientation={currentPuzzle.playerColor === 'w' ? 'white' : 'black'}
           disabled={puzzleState === 'complete' || puzzleState === 'showing-solution' || puzzleState === 'incorrect'}
+          hintSquare={hintSquare}
         />
       </div>
 
@@ -170,18 +200,22 @@ export default function PuzzlesPage() {
         )}
 
         {/* Hint */}
-        {!showHint ? (
+        {!hintSquare ? (
           <button
-            onClick={() => { setShowHint(true); setHintUsed(true) }}
-            disabled={puzzleState === 'complete'}
+            onClick={handleShowHint}
+            disabled={puzzleState === 'complete' || puzzleState === 'showing-solution'}
             className="w-full py-2 bg-[var(--panel-alt)] hover:bg-[var(--border)] disabled:opacity-40 text-[var(--text-secondary)] text-sm rounded-lg transition-colors"
           >
             Show Hint
           </button>
         ) : (
-          <div className="bg-[var(--panel-alt)] rounded-lg p-3 text-[var(--text-secondary)] text-sm italic">
-            💡 {currentPuzzle.description}
-          </div>
+          <button
+            onClick={handleShowAnswer}
+            disabled={puzzleState === 'complete' || puzzleState === 'showing-solution'}
+            className="w-full py-2 bg-[var(--panel-alt)] hover:bg-[var(--border)] disabled:opacity-40 text-[var(--text-secondary)] text-sm rounded-lg transition-colors"
+          >
+            Show Answer
+          </button>
         )}
 
         {/* Give up */}
@@ -210,7 +244,7 @@ export default function PuzzlesPage() {
         {/* Puzzle list */}
         <div className="bg-[var(--panel-alt)] rounded-xl p-3">
           <div className="text-[var(--text-muted)] text-xs mb-2">All Puzzles</div>
-          <div className="grid grid-cols-5 gap-1">
+          <div className="grid grid-cols-5 gap-1 max-h-64 overflow-y-auto">
             {PUZZLES.map((p, i) => {
               const pProg = progress[p.id]
               return (

@@ -12,6 +12,7 @@ interface ChessBoardProps {
   disabled?: boolean
   lastMove?: { from: string; to: string } | null
   playerColor?: 'w' | 'b'
+  hintSquare?: string | null
 }
 
 interface QueuedMove {
@@ -55,6 +56,7 @@ export default function ChessBoard({
   disabled = false,
   lastMove,
   playerColor,
+  hintSquare,
 }: ChessBoardProps) {
   const { settings } = useSettings()
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null)
@@ -194,6 +196,9 @@ export default function ChessBoard({
       squareStyles[from] = { backgroundColor: 'var(--warning-soft)' }
       squareStyles[to] = { backgroundColor: 'var(--danger-soft)' }
     })
+  }
+  if (hintSquare) {
+    squareStyles[hintSquare] = { backgroundColor: 'var(--board-hint)' }
   }
 
   return (
