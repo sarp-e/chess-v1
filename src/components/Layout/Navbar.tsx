@@ -2,7 +2,10 @@ import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useSettings } from '../../context/SettingsContext'
 import { useAuth } from '../../context/AuthContext'
+import { useProfile } from '../../context/ProfileContext'
 import type { ColorTheme } from '../../types'
+
+const USERNAME_PATTERN = /^[A-Za-z0-9_]+( [A-Za-z0-9_]+)*$/
 
 const THEMES: { id: ColorTheme; label: string; light: string; dark: string }[] = [
   { id: 'walnut',              label: 'Walnut',        light: '#f0d9b5', dark: '#b58863' },
@@ -17,7 +20,31 @@ export default function Navbar() {
   const navigate = useNavigate()
   const { settings, updateSettings } = useSettings()
   const { user, signOut } = useAuth()
+  const { username, setUsername } = useProfile()
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [usernameOpen, setUsernameOpen] = useState(false)
+  const [usernameInput, setUsernameInput] = useState('')
+  const [usernameError, setUsernameError] = useState<string | null>(null)
+  const [savingUsername, setSavingUsername] = useState(false)
+
+  const openUsernameEditor = () => {
+    setUsernameInput(username ?? '')
+    setUsernameError(null)
+    setUsernameOpen(true)
+  }
+
+  const handleSaveUsername = async () => {
+    const trimmed = usernameInput.trim()
+    if (trimmed.length < 3 || trimmed.length > 20 || !USERNAME_PATTERN.test(trimmed)) {
+      setUsernameError('3-20 characters: letters, numbers, underscore, single spaces.')
+      return
+    }
+    setSavingUsername(true)
+    const { error } = await setUsername(trimmed)
+    setSavingUsername(false)
+    if (error) setUsernameError(error)
+    else setUsernameOpen(false)
+  }
 
   const navLink = (to: string, label: string, exact = false) => {
     const active = exact ? location.pathname === to : location.pathname.startsWith(to)
@@ -51,14 +78,43 @@ export default function Navbar() {
 
       <div className="flex items-center gap-3">
         {user ? (
-          <div className="flex items-center gap-2">
-            <span className="text-[var(--text-muted)] text-xs hidden sm:inline">{user.email}</span>
+          <div className="relative flex items-center gap-2">
+            <button
+              onClick={openUsernameEditor}
+              className="text-[var(--text-muted)] hover:text-[var(--text-primary)] text-xs hidden sm:inline transition-colors"
+            >
+              {username ?? 'Set username'}
+            </button>
             <button
               onClick={() => signOut().then(() => navigate('/play'))}
               className="px-3 py-1.5 rounded text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--overlay)] transition-colors"
             >
               Sign out
             </button>
+
+            {usernameOpen && (
+              <>
+                <div className="fixed inset-0" onClick={() => setUsernameOpen(false)} />
+                <div className="absolute right-0 top-9 bg-[var(--panel)] border border-[var(--border)] rounded-lg p-4 w-64 shadow-xl">
+                  <h3 className="text-[var(--text-primary)] font-medium mb-3 text-sm">Username</h3>
+                  <input
+                    type="text"
+                    value={usernameInput}
+                    onChange={e => setUsernameInput(e.target.value)}
+                    placeholder="Username"
+                    className="w-full px-3 py-2 bg-[var(--panel-alt)] border border-[var(--border)] rounded-lg text-[var(--text-primary)] text-sm focus:outline-none focus:border-[var(--accent)]"
+                  />
+                  {usernameError && <p className="text-[var(--danger)] text-xs mt-2">{usernameError}</p>}
+                  <button
+                    onClick={handleSaveUsername}
+                    disabled={savingUsername}
+                    className="w-full mt-3 py-2 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    {savingUsername ? 'Saving…' : 'Save'}
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         ) : (
           navLink('/login', 'Sign in')
