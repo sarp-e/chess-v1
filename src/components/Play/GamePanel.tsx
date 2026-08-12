@@ -1,7 +1,9 @@
 import { useRef, useEffect, useState } from 'react'
 import type { GameStatus, CapturedPieces } from '../../hooks/useChessGame'
-import type { Bot } from '../../types'
+import type { Bot, AssistLevel } from '../../types'
 import { formatMoveHistory, getMaterialScore, pieceSymbol } from '../../utils/chess'
+
+type HintState = 'none' | 'loading' | 'ready'
 
 interface GamePanelProps {
   status: GameStatus
@@ -14,6 +16,11 @@ interface GamePanelProps {
   onFlip: () => void
   onResign: () => void
   canUndo: boolean
+  assistLevel: AssistLevel
+  hintState: HintState
+  onShowHint: () => void
+  onShowAnswer: () => void
+  canHint: boolean
 }
 
 const STATUS_MESSAGES: Record<GameStatus, string> = {
@@ -29,7 +36,9 @@ const STATUS_MESSAGES: Record<GameStatus, string> = {
 export default function GamePanel({
   status, moveHistory, capturedPieces, selectedBot, isGameOver,
   onNewGame, onUndo, onFlip, onResign, canUndo,
+  assistLevel, hintState, onShowHint, onShowAnswer, canHint,
 }: GamePanelProps) {
+  const assisted = assistLevel === 'assisted'
   const moveListRef = useRef<HTMLDivElement>(null)
   const [resignConfirming, setResignConfirming] = useState(false)
   const pairs = formatMoveHistory(moveHistory)
@@ -77,13 +86,15 @@ export default function GamePanel({
         >
           New Game
         </button>
-        <button
-          onClick={onUndo}
-          disabled={!canUndo || isGameOver}
-          className="flex-1 py-2 bg-[var(--panel-alt)] hover:bg-[var(--border)] disabled:opacity-40 disabled:cursor-not-allowed text-[var(--text-primary)] text-sm font-medium rounded-lg transition-colors"
-        >
-          Undo
-        </button>
+        {assisted && (
+          <button
+            onClick={onUndo}
+            disabled={!canUndo || isGameOver}
+            className="flex-1 py-2 bg-[var(--panel-alt)] hover:bg-[var(--border)] disabled:opacity-40 disabled:cursor-not-allowed text-[var(--text-primary)] text-sm font-medium rounded-lg transition-colors"
+          >
+            Undo
+          </button>
+        )}
         <button
           onClick={onFlip}
           className="px-3 py-2 bg-[var(--panel-alt)] hover:bg-[var(--border)] text-[var(--text-primary)] text-sm rounded-lg transition-colors"
@@ -92,6 +103,26 @@ export default function GamePanel({
           ⇅
         </button>
       </div>
+
+      {/* Hint (assisted play only) */}
+      {assisted && (
+        hintState === 'ready' ? (
+          <button
+            onClick={onShowAnswer}
+            className="w-full py-2 bg-[var(--panel-alt)] hover:bg-[var(--border)] text-[var(--text-secondary)] text-sm rounded-lg transition-colors"
+          >
+            Show Answer
+          </button>
+        ) : (
+          <button
+            onClick={onShowHint}
+            disabled={!canHint || hintState === 'loading'}
+            className="w-full py-2 bg-[var(--panel-alt)] hover:bg-[var(--border)] disabled:opacity-40 disabled:cursor-not-allowed text-[var(--text-secondary)] text-sm rounded-lg transition-colors"
+          >
+            {hintState === 'loading' ? 'Thinking…' : 'Show Hint'}
+          </button>
+        )
+      )}
 
       {/* Resign */}
       {status === 'playing' && (

@@ -8,7 +8,7 @@ export const BOTS: Bot[] = [
     tagline: "I just learned which way the horsey moves!",
     bio: "A toddler who discovered chess yesterday. Moves pieces at random, occasionally stumbles into brilliance by pure accident. The perfect first opponent.",
     depth: 1,
-    blunderChance: 0.9,
+    blunderChance: 0.98,
     avatar: '🐣',
   },
   {

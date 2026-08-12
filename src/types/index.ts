@@ -1,5 +1,8 @@
 export type Difficulty = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
 
+// 'assisted' allows hints and takebacks; 'regular' is standard play with neither.
+export type AssistLevel = 'assisted' | 'regular'
+
 export interface Bot {
   id: string
   name: string
