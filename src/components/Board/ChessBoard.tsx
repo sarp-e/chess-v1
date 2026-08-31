@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect, useRef } from 'react'
 import { Chessboard } from 'react-chessboard'
 import { Chess } from 'chess.js'
 import type { Square } from 'chess.js'
-import type { SquareHandlerArgs, PieceDropHandlerArgs } from 'react-chessboard'
+import type { SquareHandlerArgs, PieceDropHandlerArgs, PieceHandlerArgs } from 'react-chessboard'
 import { useSettings } from '../../context/SettingsContext'
 
 interface ChessBoardProps {
@@ -150,8 +150,38 @@ export default function ChessBoard({
     }
   }, [disabled, canPremove, fen, selectedSquare, premoveQueue, playerColor, onMove, getLegalMoves])
 
+  // Mirror the fresh-selection half of onSquareClick when a drag starts, so the
+  // legal-move markers show while dragging just as they do on click.
+  const onPieceDrag = useCallback(({ square }: PieceHandlerArgs) => {
+    if (!square) return
+    const sq = square as Square
+
+    if (disabled) {
+      if (!canPremove) return
+      const projectedFen = projectFen(fen, premoveQueue)
+      const piece = new Chess(projectedFen).get(sq)
+      if (piece && piece.color === playerColor) {
+        setSelectedSquare(square)
+        setLegalMoveSquares(getLegalMoves(sq, forceTurn(projectedFen, piece.color)))
+      }
+      return
+    }
+
+    const game = new Chess(fen)
+    const piece = game.get(sq)
+    if (piece && piece.color === game.turn()) {
+      setSelectedSquare(square)
+      setLegalMoveSquares(getLegalMoves(sq, game))
+    }
+  }, [disabled, canPremove, fen, premoveQueue, playerColor, getLegalMoves])
+
   const onPieceDrop = useCallback(({ sourceSquare, targetSquare }: PieceDropHandlerArgs): boolean => {
-    if (!targetSquare) return false
+    if (!targetSquare) {
+      // drag cancelled (dropped off board / on origin) — clear the drag markers
+      setSelectedSquare(null)
+      setLegalMoveSquares({})
+      return false
+    }
 
     if (disabled) {
       if (!canPremove) return false
@@ -207,6 +237,7 @@ export default function ChessBoard({
         options={{
           position: fen,
           onPieceDrop,
+          onPieceDrag,
           onSquareClick,
           boardOrientation: orientation,
           allowDragging: !disabled || canPremove,
