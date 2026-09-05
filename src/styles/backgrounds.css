@@ -1,0 +1,104 @@
+/*
+  App background styles. The visual rules key off data-bg-style on the element
+  itself, so the same definitions drive both the full-screen layer
+  (<AppBackground/> -> .app-bg) and the small previews in the shop (.bg-swatch).
+
+  Procedural styles (flat / ambient-glow / vignette / checkered / contour) are
+  built from theme tokens so they track light/dark. The photo-* styles are fixed
+  decorative palettes. data-mode on <html> still reaches these via the ancestor
+  selector for the dark vignette.
+*/
+
+.app-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.bg-swatch {
+  position: relative;
+  overflow: hidden;
+  border-radius: 0.375rem;
+  background-color: var(--bg);
+}
+
+[data-bg-style='none'] {
+  background: transparent;
+}
+
+[data-bg-style='flat'] {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--accent) 7%, var(--bg)),
+    var(--bg) 60%
+  );
+}
+
+[data-bg-style='ambient-glow'] {
+  background:
+    radial-gradient(
+      55% 45% at 18% 12%,
+      color-mix(in srgb, var(--accent) 24%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      50% 45% at 85% 88%,
+      color-mix(in srgb, var(--accent) 16%, transparent),
+      transparent 70%
+    );
+}
+
+[data-bg-style='vignette'] {
+  background: radial-gradient(120% 120% at 50% 50%, transparent 52%, rgba(0, 0, 0, 0.3));
+}
+html[data-mode='dark'] [data-bg-style='vignette'] {
+  background: radial-gradient(120% 120% at 50% 50%, transparent 45%, rgba(0, 0, 0, 0.55));
+}
+
+[data-bg-style='checkered'] {
+  background-image: repeating-conic-gradient(
+    color-mix(in srgb, var(--text-primary) 4%, transparent) 0deg 90deg,
+    transparent 90deg 180deg
+  );
+  background-size: 56px 56px;
+}
+.bg-swatch[data-bg-style='checkered'] {
+  background-size: 24px 24px;
+}
+
+[data-bg-style='contour'] {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Cg fill='none' stroke='%237f7f7f' stroke-opacity='0.16' stroke-width='1.5'%3E%3Cpath d='M0 60C80 20 160 100 240 60S400 20 400 60'/%3E%3Cpath d='M0 120C80 80 160 160 240 120S400 80 400 120'/%3E%3Cpath d='M0 180C80 140 160 220 240 180S400 140 400 180'/%3E%3Cpath d='M0 240C80 200 160 280 240 240S400 200 400 240'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 400px 300px;
+}
+
+[data-bg-style='photo-aurora'] {
+  background:
+    radial-gradient(60% 50% at 15% 20%, rgba(56, 232, 178, 0.5), transparent 70%),
+    radial-gradient(55% 45% at 80% 15%, rgba(120, 110, 255, 0.45), transparent 70%),
+    radial-gradient(70% 60% at 75% 85%, rgba(38, 120, 200, 0.5), transparent 75%),
+    linear-gradient(160deg, #0b1830, #112233 55%, #0a1022);
+}
+
+[data-bg-style='photo-dusk'] {
+  background:
+    radial-gradient(55% 45% at 20% 85%, rgba(255, 138, 76, 0.55), transparent 70%),
+    radial-gradient(50% 40% at 85% 75%, rgba(255, 92, 138, 0.4), transparent 70%),
+    radial-gradient(80% 60% at 60% 10%, rgba(78, 62, 140, 0.5), transparent 75%),
+    linear-gradient(180deg, #2a1c3f, #3a2140 45%, #1b1030);
+}
+
+[data-bg-style='photo-lagoon'] {
+  background:
+    radial-gradient(55% 45% at 80% 20%, rgba(64, 214, 210, 0.5), transparent 70%),
+    radial-gradient(60% 50% at 15% 75%, rgba(40, 150, 170, 0.5), transparent 72%),
+    radial-gradient(70% 55% at 55% 95%, rgba(232, 214, 170, 0.35), transparent 75%),
+    linear-gradient(165deg, #0c2f38, #103c44 55%, #0a2027);
+}
+
+.app-bg[data-bg-style='custom'],
+.bg-swatch[data-bg-style='custom'] {
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}

@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Chess } from 'chess.js'
 import { BOTS } from '../data/bots'
@@ -8,6 +8,7 @@ import GamePanel from '../components/Play/GamePanel'
 import BotSelector from '../components/Play/BotSelector'
 import { useChessGame } from '../hooks/useChessGame'
 import { useStockfish } from '../hooks/useStockfish'
+import { useWallet } from '../context/WalletContext'
 
 const HINT_DEPTH = 15
 
@@ -17,6 +18,8 @@ export default function PlayPage() {
   const [pendingBot, setPendingBot] = useState<Bot>(BOTS[2])
   const [assistLevel, setAssistLevel] = useState<AssistLevel>('assisted')
   const [pendingAssistLevel, setPendingAssistLevel] = useState<AssistLevel>('assisted')
+  const [playerColor, setPlayerColor] = useState<'white' | 'black'>('white')
+  const [pendingColor, setPendingColor] = useState<'white' | 'black' | 'random'>('white')
   const [orientation, setOrientation] = useState<'white' | 'black'>('white')
   const [showBotSelect, setShowBotSelect] = useState(true)
   const [hintMove, setHintMove] = useState<string | null>(null)
@@ -27,6 +30,22 @@ export default function PlayPage() {
     makeMove, makeMoveFromUCI, newGame, undoMove, resign, setThinking,
     fen, turn, isGameOver,
   } = useChessGame()
+
+  // chess.js turn codes for the player and the bot, derived from the chosen side.
+  const myTurn = playerColor === 'white' ? 'w' : 'b'
+  const botTurn = playerColor === 'white' ? 'b' : 'w'
+
+  const { awardBotWin } = useWallet()
+  const [tokensEarned, setTokensEarned] = useState<number | null>(null)
+  const awardedRef = useRef(false)
+
+  // Checkmate with the bot to move means the player delivered mate — a win.
+  useEffect(() => {
+    if (status === 'checkmate' && turn === botTurn && !awardedRef.current) {
+      awardedRef.current = true
+      awardBotWin(selectedBot.elo).then(amount => { if (amount > 0) setTokensEarned(amount) })
+    }
+  }, [status, turn, botTurn, selectedBot.elo, awardBotWin])
 
   const handleBestMove = useCallback((uci: string) => {
     setTimeout(() => {
@@ -64,7 +83,7 @@ export default function PlayPage() {
   }, [hintMove, makeMoveFromUCI])
 
   useEffect(() => {
-    if (status === 'playing' && turn === 'b' && !isGameOver) {
+    if (status === 'playing' && turn === botTurn && !isGameOver) {
       setThinking(true)
       const blunder = Math.random() < selectedBot.blunderChance
       const blunderDepth = Math.max(1, selectedBot.depth - 3)
@@ -84,26 +103,33 @@ export default function PlayPage() {
       }, 300)
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fen, status, turn, isGameOver])
+  }, [fen, status, turn, isGameOver, botTurn])
 
   const handleMove = useCallback((from: string, to: string): boolean => {
-    if (turn !== 'w' || status !== 'playing') return false
+    if (turn !== myTurn || status !== 'playing') return false
     const moved = makeMove(from, to)
     if (moved) {
       setHintMove(null)
       setHintLoading(false)
     }
     return moved
-  }, [turn, status, makeMove])
+  }, [turn, myTurn, status, makeMove])
 
   const handleNewGame = useCallback(() => {
     setSelectedBot(pendingBot)
     setAssistLevel(pendingAssistLevel)
+    const resolvedColor = pendingColor === 'random'
+      ? (Math.random() < 0.5 ? 'white' : 'black')
+      : pendingColor
+    setPlayerColor(resolvedColor)
+    setOrientation(resolvedColor)
     setShowBotSelect(false)
     setHintMove(null)
     setHintLoading(false)
+    setTokensEarned(null)
+    awardedRef.current = false
     newGame()
-  }, [pendingBot, pendingAssistLevel, newGame])
+  }, [pendingBot, pendingAssistLevel, pendingColor, newGame])
 
   const handleUndo = useCallback(() => {
     setHintMove(null)
@@ -119,9 +145,9 @@ export default function PlayPage() {
           fen={fen}
           onMove={handleMove}
           orientation={orientation}
-          disabled={turn !== 'w' || status !== 'playing'}
+          disabled={turn !== myTurn || status !== 'playing'}
           lastMove={lastMove}
-          playerColor="w"
+          playerColor={myTurn}
           hintSquare={hintMove ? hintMove.slice(0, 2) : null}
         />
       </div>
@@ -142,6 +168,26 @@ export default function PlayPage() {
               </div>
               <p className="text-[var(--text-muted)] text-xs italic">"{pendingBot.tagline}"</p>
               <p className="text-[var(--text-secondary)] text-xs mt-2">{pendingBot.bio}</p>
+            </div>
+
+            <div>
+              <label className="text-[var(--text-muted)] text-xs mb-1.5 block">Play As</label>
+              <div className="grid grid-cols-3 gap-2">
+                {(['white', 'random', 'black'] as const).map(c => (
+                  <button
+                    key={c}
+                    onClick={() => setPendingColor(c)}
+                    className={`p-2 rounded-lg border text-center transition-colors ${
+                      pendingColor === c
+                        ? 'border-[var(--accent)] bg-[var(--accent-soft)]'
+                        : 'border-[var(--border)] hover:border-[var(--text-muted)] bg-[var(--panel-alt)]'
+                    }`}
+                  >
+                    <div className="text-lg leading-none">{c === 'white' ? '♔' : c === 'black' ? '♚' : '🎲'}</div>
+                    <div className="text-[var(--text-primary)] text-xs font-medium mt-1 capitalize">{c}</div>
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div>
@@ -176,7 +222,7 @@ export default function PlayPage() {
               onClick={handleNewGame}
               className="w-full py-2.5 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white font-medium rounded-lg transition-colors"
             >
-              Play as White
+              {pendingColor === 'random' ? 'Play as Random' : pendingColor === 'white' ? 'Play as White' : 'Play as Black'}
             </button>
           </div>
         ) : (
@@ -196,11 +242,16 @@ export default function PlayPage() {
               hintState={hintLoading ? 'loading' : hintMove ? 'ready' : 'none'}
               onShowHint={handleShowHint}
               onShowAnswer={handleShowAnswer}
-              canHint={turn === 'w' && status === 'playing'}
+              canHint={turn === myTurn && status === 'playing'}
             />
 
             {isGameOver && (
               <div className="flex flex-col gap-2">
+                {tokensEarned !== null && (
+                  <div className="text-center text-sm text-[var(--accent)] font-medium">
+                    +{tokensEarned} 🪙 tokens earned!
+                  </div>
+                )}
                 <button
                   onClick={() => {
                     const chess = new Chess()
@@ -208,7 +259,7 @@ export default function PlayPage() {
                       const move = chess.move(san)
                       return move.from + move.to + (move.promotion ?? '')
                     })
-                    navigate('/review', { state: { uciMoves, playerColor: 'white' } })
+                    navigate('/review', { state: { uciMoves, playerColor } })
                   }}
                   className="w-full py-2.5 bg-[var(--panel-alt)] hover:bg-[var(--border)] text-[var(--text-primary)] font-medium rounded-lg transition-colors"
                 >

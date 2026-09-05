@@ -3,7 +3,9 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useSettings } from '../../context/SettingsContext'
 import { useAuth } from '../../context/AuthContext'
 import { useProfile } from '../../context/ProfileContext'
-import type { ColorTheme } from '../../types'
+import { useWallet } from '../../context/WalletContext'
+import { isFreeItem, shopItemFor, shopItemsOfType } from '../../data/shop'
+import type { BackgroundId, ColorTheme } from '../../types'
 
 const USERNAME_PATTERN = /^[A-Za-z0-9_]+( [A-Za-z0-9_]+)*$/
 
@@ -21,11 +23,31 @@ export default function Navbar() {
   const { settings, updateSettings } = useSettings()
   const { user, signOut } = useAuth()
   const { username, setUsername } = useProfile()
+  const { tokens, isUnlocked } = useWallet()
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [usernameOpen, setUsernameOpen] = useState(false)
   const [usernameInput, setUsernameInput] = useState('')
   const [usernameError, setUsernameError] = useState<string | null>(null)
   const [savingUsername, setSavingUsername] = useState(false)
+
+  // Settings only *switches between* things you already own. Anything locked
+  // sends you to the shop, which is the one place purchases happen.
+  const isItemLocked = (type: 'pieceSet' | 'colorTheme' | 'background', value: string) => {
+    if (isFreeItem(type, value)) return false
+    const item = shopItemFor(type, value)
+    return !!item && !isUnlocked(item.id)
+  }
+
+  const handleSelectCustomization = (type: 'pieceSet' | 'colorTheme' | 'background', value: string) => {
+    if (isItemLocked(type, value)) {
+      setSettingsOpen(false)
+      navigate('/shop')
+      return
+    }
+    if (type === 'pieceSet') updateSettings({ pieceSet: value as typeof settings.pieceSet })
+    else if (type === 'colorTheme') updateSettings({ colorTheme: value as ColorTheme })
+    else updateSettings({ background: value as BackgroundId })
+  }
 
   const openUsernameEditor = () => {
     setUsernameInput(username ?? '')
@@ -71,6 +93,7 @@ export default function Navbar() {
         <div className="flex items-center gap-1">
           {navLink('/play', 'Play', true)}
           {navLink('/play/online', 'Online')}
+          {navLink('/shop', 'Shop')}
           {navLink('/puzzles', 'Puzzles')}
           {navLink('/learn', 'Learn')}
         </div>
@@ -79,6 +102,13 @@ export default function Navbar() {
       <div className="flex items-center gap-3">
         {user ? (
           <div className="relative flex items-center gap-2">
+            <Link
+              to="/shop"
+              className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-xs font-medium transition-colors"
+              title="Tokens — win games to earn more, spend them in the Shop"
+            >
+              🪙 {tokens}
+            </Link>
             <button
               onClick={openUsernameEditor}
               className="text-[var(--text-muted)] hover:text-[var(--text-primary)] text-xs hidden sm:inline transition-colors"
@@ -140,19 +170,29 @@ export default function Navbar() {
                   <div>
                     <label className="text-[var(--text-muted)] text-xs mb-1.5 block">Theme</label>
                     <div className="grid grid-cols-5 gap-1.5">
-                      {THEMES.map(t => (
-                        <button
-                          key={t.id}
-                          onClick={() => updateSettings({ colorTheme: t.id })}
-                          title={t.label}
-                          className={`aspect-square rounded-md border-2 transition-colors ${
-                            settings.colorTheme === t.id
-                              ? 'border-[var(--accent)]'
-                              : 'border-transparent hover:border-[var(--border)]'
-                          }`}
-                          style={{ background: `linear-gradient(135deg, ${t.light} 50%, ${t.dark} 50%)` }}
-                        />
-                      ))}
+                      {THEMES.map(t => {
+                        const item = shopItemFor('colorTheme', t.id)
+                        const locked = item && !isFreeItem('colorTheme', t.id) && !isUnlocked(item.id)
+                        return (
+                          <button
+                            key={t.id}
+                            onClick={() => handleSelectCustomization('colorTheme', t.id)}
+                            title={locked ? `${t.label} — ${item!.price} 🪙` : t.label}
+                            className={`relative aspect-square rounded-md border-2 transition-colors ${
+                              settings.colorTheme === t.id
+                                ? 'border-[var(--accent)]'
+                                : 'border-transparent hover:border-[var(--border)]'
+                            }`}
+                            style={{ background: `linear-gradient(135deg, ${t.light} 50%, ${t.dark} 50%)` }}
+                          >
+                            {locked && (
+                              <span className="absolute inset-0 flex items-center justify-center text-[10px] bg-black/40 rounded text-white">
+                                🔒
+                              </span>
+                            )}
+                          </button>
+                        )
+                      })}
                     </div>
                     <div className="text-[var(--text-muted)] text-xs mt-1 text-center">
                       {THEMES.find(t => t.id === settings.colorTheme)?.label}
@@ -183,20 +223,47 @@ export default function Navbar() {
                   <div>
                     <label className="text-[var(--text-muted)] text-xs mb-1.5 block">Piece Set</label>
                     <div className="flex gap-1">
-                      {(['standard', 'cburnett'] as const).map(set => (
-                        <button
-                          key={set}
-                          onClick={() => updateSettings({ pieceSet: set })}
-                          className={`flex-1 py-1 text-xs rounded capitalize transition-colors ${
-                            settings.pieceSet === set
-                              ? 'bg-[var(--accent)] text-white'
-                              : 'bg-[var(--panel-alt)] text-[var(--text-secondary)] hover:bg-[var(--border)]'
-                          }`}
-                        >
-                          {set}
-                        </button>
-                      ))}
+                      {(['standard', 'cburnett'] as const).map(set => {
+                        const item = shopItemFor('pieceSet', set)
+                        const locked = item && !isFreeItem('pieceSet', set) && !isUnlocked(item.id)
+                        return (
+                          <button
+                            key={set}
+                            onClick={() => handleSelectCustomization('pieceSet', set)}
+                            className={`flex-1 py-1 text-xs rounded capitalize transition-colors ${
+                              settings.pieceSet === set
+                                ? 'bg-[var(--accent)] text-white'
+                                : 'bg-[var(--panel-alt)] text-[var(--text-secondary)] hover:bg-[var(--border)]'
+                            }`}
+                          >
+                            {set}{locked ? ` 🔒${item!.price}` : ''}
+                          </button>
+                        )
+                      })}
                     </div>
+                  </div>
+
+                  {/* Background — switch between owned backgrounds; buy in the Shop */}
+                  <div>
+                    <label className="text-[var(--text-muted)] text-xs mb-1.5 block">Background</label>
+                    <select
+                      value={settings.background.startsWith('custom:') ? '__custom' : settings.background}
+                      onChange={e => {
+                        if (e.target.value === '__shop') { setSettingsOpen(false); navigate('/shop'); return }
+                        if (e.target.value === '__custom') return
+                        handleSelectCustomization('background', e.target.value)
+                      }}
+                      className="w-full py-1 px-2 text-xs rounded bg-[var(--panel-alt)] text-[var(--text-secondary)] border border-[var(--border)] focus:outline-none focus:border-[var(--accent)]"
+                    >
+                      <option value="none">None</option>
+                      {shopItemsOfType('background')
+                        .filter(item => isUnlocked(item.id))
+                        .map(item => (
+                          <option key={item.id} value={item.value}>{item.label}</option>
+                        ))}
+                      {settings.background.startsWith('custom:') && <option value="__custom">Custom image</option>}
+                      <option value="__shop">Get more in Shop…</option>
+                    </select>
                   </div>
 
                   {/* Show legal moves */}

@@ -37,12 +37,28 @@ export interface PuzzleProgress {
 export type ColorTheme = 'walnut' | 'slate-mono' | 'championship-green' | 'forest' | 'ocean'
 export type ColorMode = 'system' | 'light' | 'dark'
 
+// Built-in app backgrounds (procedural CSS/SVG) plus curated "photo" gradients.
+// A user's uploaded image is stored as `custom:<uuid>` — the uuid keys a blob
+// in IndexedDB (see src/lib/bgStore.ts).
+export type BuiltinBackground =
+  | 'none'
+  | 'flat'
+  | 'ambient-glow'
+  | 'vignette'
+  | 'checkered'
+  | 'contour'
+  | 'photo-aurora'
+  | 'photo-dusk'
+  | 'photo-lagoon'
+export type BackgroundId = BuiltinBackground | `custom:${string}`
+
 export interface Settings {
   showLegalMoves: boolean
   colorTheme: ColorTheme
   colorMode: ColorMode
   pieceSet: 'standard' | 'cburnett'
   allowPremove: boolean
+  background: BackgroundId
 }
 
 export interface Lesson {

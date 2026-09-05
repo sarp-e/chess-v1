@@ -8,7 +8,7 @@ export const BOTS: Bot[] = [
     tagline: "I just learned which way the horsey moves!",
     bio: "A toddler who discovered chess yesterday. Moves pieces at random, occasionally stumbles into brilliance by pure accident. The perfect first opponent.",
     depth: 1,
-    blunderChance: 0.98,
+    blunderChance: 0.985,
     avatar: '🐣',
   },
   {
@@ -18,7 +18,7 @@ export const BOTS: Bot[] = [
     tagline: "Chess is my new favourite game!",
     bio: "A kid who just learned the rules and plays with infectious enthusiasm. Hangs pieces, misses threats, but occasionally surprises you.",
     depth: 1,
-    blunderChance: 0.6,
+    blunderChance: 0.63,
     avatar: '🧒',
   },
   {
@@ -28,7 +28,7 @@ export const BOTS: Bot[] = [
     tagline: "Back in my day, we memorised openings from books.",
     bio: "A well-meaning club coach who hasn't played seriously in years. Knows his openings by heart but falls apart when the position gets complicated.",
     depth: 2,
-    blunderChance: 0.3,
+    blunderChance: 0.33,
     avatar: '👨‍🏫',
   },
   {
@@ -38,7 +38,7 @@ export const BOTS: Bot[] = [
     tagline: "A gentleman always trades queens.",
     bio: "An old-fashioned player who believes in solid, principled chess. He'll trade everything down to a dead draw if he can help it. No tactical fireworks here.",
     depth: 4,
-    blunderChance: 0.1,
+    blunderChance: 0.12,
     avatar: '🎩',
   },
   {
@@ -48,7 +48,7 @@ export const BOTS: Bot[] = [
     tagline: "Your king looks lonely. Let me fix that.",
     bio: "A sharp tournament player who goes for the throat every game. Aggressive, tactical, and dangerous — even when her sacrifices aren't quite sound.",
     depth: 6,
-    blunderChance: 0.05,
+    blunderChance: 0.06,
     avatar: '⚡',
   },
   {
@@ -58,7 +58,7 @@ export const BOTS: Bot[] = [
     tagline: "Patience is the highest virtue in chess.",
     bio: "A calm academic who wins through positional suffocation. No flashy tactics — just slow, methodical improvement of every piece until you can't breathe.",
     depth: 8,
-    blunderChance: 0.02,
+    blunderChance: 0.03,
     avatar: '🦉',
   },
   {
@@ -68,7 +68,7 @@ export const BOTS: Bot[] = [
     tagline: "I've seen this position before. It doesn't end well for you.",
     bio: "A seasoned tournament veteran with deep opening preparation and textbook endgame technique. Hard to trick, harder to beat.",
     depth: 10,
-    blunderChance: 0,
+    blunderChance: 0.015,
     avatar: '♟️',
   },
   {
@@ -78,7 +78,7 @@ export const BOTS: Bot[] = [
     tagline: "Calculating optimal response…",
     bio: "An AI trained on millions of games. No ego, no emotion — just the best move, every time. Cold, precise, and almost impossible to beat.",
     depth: 14,
-    blunderChance: 0,
+    blunderChance: 0.01,
     avatar: '🤖',
   },
   {
@@ -88,7 +88,7 @@ export const BOTS: Bot[] = [
     tagline: "…",
     bio: "No one knows where The Ghost came from. No profile, no history. Just an empty chair across the board — and moves that make grandmasters weep.",
     depth: 20,
-    blunderChance: 0,
+    blunderChance: 0.005,
     avatar: '👻',
   },
 ]

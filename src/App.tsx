@@ -3,8 +3,10 @@ import { Analytics } from '@vercel/analytics/react'
 import { SettingsProvider } from './context/SettingsContext'
 import { AuthProvider } from './context/AuthContext'
 import { ProfileProvider } from './context/ProfileContext'
+import { WalletProvider } from './context/WalletContext'
 import RequireAuth from './components/Auth/RequireAuth'
 import Navbar from './components/Layout/Navbar'
+import AppBackground from './components/Layout/AppBackground'
 import PlayPage from './pages/PlayPage'
 import PuzzlesPage from './pages/PuzzlesPage'
 import LearnPage from './pages/LearnPage'
@@ -12,27 +14,32 @@ import LoginPage from './pages/LoginPage'
 import OnlineLobbyPage from './pages/OnlineLobbyPage'
 import OnlineGamePage from './pages/OnlineGamePage'
 import GameReviewPage from './pages/GameReviewPage'
+import ShopPage from './pages/ShopPage'
 
 export default function App() {
   return (
     <SettingsProvider>
       <AuthProvider>
         <ProfileProvider>
-          <BrowserRouter>
-            <div className="min-h-screen bg-[var(--bg)] text-[var(--text-primary)]">
-              <Navbar />
-              <Routes>
-                <Route path="/" element={<Navigate to="/play" replace />} />
-                <Route path="/play" element={<PlayPage />} />
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/play/online" element={<RequireAuth><OnlineLobbyPage /></RequireAuth>} />
-                <Route path="/play/online/:gameId" element={<RequireAuth><OnlineGamePage /></RequireAuth>} />
-                <Route path="/puzzles" element={<PuzzlesPage />} />
-                <Route path="/learn" element={<LearnPage />} />
-                <Route path="/review" element={<GameReviewPage />} />
-              </Routes>
-            </div>
-          </BrowserRouter>
+          <WalletProvider>
+            <BrowserRouter>
+              <AppBackground />
+              <div className="relative z-10 min-h-screen text-[var(--text-primary)]">
+                <Navbar />
+                <Routes>
+                  <Route path="/" element={<Navigate to="/play" replace />} />
+                  <Route path="/play" element={<PlayPage />} />
+                  <Route path="/login" element={<LoginPage />} />
+                  <Route path="/play/online" element={<RequireAuth><OnlineLobbyPage /></RequireAuth>} />
+                  <Route path="/play/online/:gameId" element={<RequireAuth><OnlineGamePage /></RequireAuth>} />
+                  <Route path="/puzzles" element={<PuzzlesPage />} />
+                  <Route path="/learn" element={<LearnPage />} />
+                  <Route path="/review" element={<GameReviewPage />} />
+                  <Route path="/shop" element={<ShopPage />} />
+                </Routes>
+              </div>
+            </BrowserRouter>
+          </WalletProvider>
         </ProfileProvider>
       </AuthProvider>
       <Analytics />

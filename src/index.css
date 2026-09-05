@@ -1,4 +1,11 @@
 @import './styles/theme-tokens.css';
+@import './styles/backgrounds.css';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Base surface colour lives on <html> so the fixed .app-bg layer can sit on top
+   of it while page content (transparent wrapper) sits above the background. */
+html {
+  background: var(--bg);
+}
