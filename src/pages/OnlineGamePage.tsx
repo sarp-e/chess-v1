@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useOnlineGame } from '../hooks/useOnlineGame'
+import { useWallet } from '../context/WalletContext'
 import ChessBoard from '../components/Board/ChessBoard'
 
 function StatusBanner({ label, sub }: { label: string; sub?: string }) {
@@ -17,8 +18,11 @@ export default function OnlineGamePage() {
   const { gameId } = useParams<{ gameId: string }>()
   const navigate = useNavigate()
   const { user } = useAuth()
+  const { awardOnlineWin } = useWallet()
   const [copied, setCopied] = useState(false)
   const [confirming, setConfirming] = useState<'draw' | 'resign' | null>(null)
+  const [tokensEarned, setTokensEarned] = useState<number | null>(null)
+  const awardedRef = useRef(false)
 
   const {
     fen, moves, status, result, myColor, isMyTurn, lastMove,
@@ -29,6 +33,20 @@ export default function OnlineGamePage() {
   useEffect(() => {
     if (rematchGameId) navigate(`/play/online/${rematchGameId}`)
   }, [rematchGameId, navigate])
+
+  // A rematch reuses this same page component with a new gameId param —
+  // reset per-game award state so the new game's win can still be claimed.
+  useEffect(() => {
+    awardedRef.current = false
+    setTokensEarned(null)
+  }, [gameId])
+
+  useEffect(() => {
+    if (status === 'finished' && result === myColor && gameId && !awardedRef.current) {
+      awardedRef.current = true
+      awardOnlineWin(gameId).then(amount => { if (amount > 0) setTokensEarned(amount) })
+    }
+  }, [status, result, myColor, gameId, awardOnlineWin])
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(window.location.href)
@@ -132,7 +150,10 @@ export default function OnlineGamePage() {
 
         {/* Game over */}
         {status === 'finished' && resultLabel && (
-          <StatusBanner label={resultLabel} />
+          <StatusBanner
+            label={resultLabel}
+            sub={tokensEarned !== null ? `+${tokensEarned} 🪙 tokens earned!` : undefined}
+          />
         )}
 
         {/* Active game actions */}
