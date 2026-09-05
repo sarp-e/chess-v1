@@ -132,6 +132,14 @@ begin
     when 'colorTheme:championship-green' then 30
     when 'colorTheme:forest' then 30
     when 'colorTheme:ocean' then 30
+    when 'background:flat' then 30
+    when 'background:ambient-glow' then 30
+    when 'background:vignette' then 30
+    when 'background:checkered' then 30
+    when 'background:contour' then 30
+    when 'background:photo-aurora' then 30
+    when 'background:photo-dusk' then 30
+    when 'background:photo-lagoon' then 30
     else null
   end;
   if v_price is null then

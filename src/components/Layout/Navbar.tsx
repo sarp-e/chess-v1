@@ -4,8 +4,8 @@ import { useSettings } from '../../context/SettingsContext'
 import { useAuth } from '../../context/AuthContext'
 import { useProfile } from '../../context/ProfileContext'
 import { useWallet } from '../../context/WalletContext'
-import { isFreeItem, shopItemFor } from '../../data/shop'
-import type { ColorTheme } from '../../types'
+import { isFreeItem, shopItemFor, shopItemsOfType } from '../../data/shop'
+import type { BackgroundId, ColorTheme } from '../../types'
 
 const USERNAME_PATTERN = /^[A-Za-z0-9_]+( [A-Za-z0-9_]+)*$/
 
@@ -23,39 +23,30 @@ export default function Navbar() {
   const { settings, updateSettings } = useSettings()
   const { user, signOut } = useAuth()
   const { username, setUsername } = useProfile()
-  const { tokens, isUnlocked, unlockItem } = useWallet()
+  const { tokens, isUnlocked } = useWallet()
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [usernameOpen, setUsernameOpen] = useState(false)
   const [usernameInput, setUsernameInput] = useState('')
   const [usernameError, setUsernameError] = useState<string | null>(null)
   const [savingUsername, setSavingUsername] = useState(false)
-  const [shopMessage, setShopMessage] = useState<string | null>(null)
 
-  // Selecting a customization the user hasn't unlocked spends tokens on it
-  // first (via the server, which owns the real balance) instead of just
-  // applying it.
-  const handleSelectCustomization = async (type: 'pieceSet' | 'colorTheme', value: string) => {
-    setShopMessage(null)
-    if (isFreeItem(type, value)) {
-      updateSettings(type === 'pieceSet' ? { pieceSet: value as typeof settings.pieceSet } : { colorTheme: value as ColorTheme })
-      return
-    }
+  // Settings only *switches between* things you already own. Anything locked
+  // sends you to the shop, which is the one place purchases happen.
+  const isItemLocked = (type: 'pieceSet' | 'colorTheme' | 'background', value: string) => {
+    if (isFreeItem(type, value)) return false
     const item = shopItemFor(type, value)
-    if (!item) return
-    if (isUnlocked(item.id)) {
-      updateSettings(type === 'pieceSet' ? { pieceSet: value as typeof settings.pieceSet } : { colorTheme: value as ColorTheme })
+    return !!item && !isUnlocked(item.id)
+  }
+
+  const handleSelectCustomization = (type: 'pieceSet' | 'colorTheme' | 'background', value: string) => {
+    if (isItemLocked(type, value)) {
+      setSettingsOpen(false)
+      navigate('/shop')
       return
     }
-    if (!user) {
-      setShopMessage('Sign in to unlock with tokens.')
-      return
-    }
-    const ok = await unlockItem(item.id)
-    if (ok) {
-      updateSettings(type === 'pieceSet' ? { pieceSet: value as typeof settings.pieceSet } : { colorTheme: value as ColorTheme })
-    } else {
-      setShopMessage(`Need ${item.price} 🪙 — you have ${tokens}.`)
-    }
+    if (type === 'pieceSet') updateSettings({ pieceSet: value as typeof settings.pieceSet })
+    else if (type === 'colorTheme') updateSettings({ colorTheme: value as ColorTheme })
+    else updateSettings({ background: value as BackgroundId })
   }
 
   const openUsernameEditor = () => {
@@ -102,6 +93,7 @@ export default function Navbar() {
         <div className="flex items-center gap-1">
           {navLink('/play', 'Play', true)}
           {navLink('/play/online', 'Online')}
+          {navLink('/shop', 'Shop')}
           {navLink('/puzzles', 'Puzzles')}
           {navLink('/learn', 'Learn')}
         </div>
@@ -110,9 +102,13 @@ export default function Navbar() {
       <div className="flex items-center gap-3">
         {user ? (
           <div className="relative flex items-center gap-2">
-            <span className="text-[var(--text-secondary)] text-xs font-medium" title="Tokens — win games to earn more, spend them in Settings">
+            <Link
+              to="/shop"
+              className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-xs font-medium transition-colors"
+              title="Tokens — win games to earn more, spend them in the Shop"
+            >
               🪙 {tokens}
-            </span>
+            </Link>
             <button
               onClick={openUsernameEditor}
               className="text-[var(--text-muted)] hover:text-[var(--text-primary)] text-xs hidden sm:inline transition-colors"
@@ -247,9 +243,28 @@ export default function Navbar() {
                     </div>
                   </div>
 
-                  {shopMessage && (
-                    <div className="text-[var(--danger)] text-xs text-center -mt-2">{shopMessage}</div>
-                  )}
+                  {/* Background — switch between owned backgrounds; buy in the Shop */}
+                  <div>
+                    <label className="text-[var(--text-muted)] text-xs mb-1.5 block">Background</label>
+                    <select
+                      value={settings.background.startsWith('custom:') ? '__custom' : settings.background}
+                      onChange={e => {
+                        if (e.target.value === '__shop') { setSettingsOpen(false); navigate('/shop'); return }
+                        if (e.target.value === '__custom') return
+                        handleSelectCustomization('background', e.target.value)
+                      }}
+                      className="w-full py-1 px-2 text-xs rounded bg-[var(--panel-alt)] text-[var(--text-secondary)] border border-[var(--border)] focus:outline-none focus:border-[var(--accent)]"
+                    >
+                      <option value="none">None</option>
+                      {shopItemsOfType('background')
+                        .filter(item => isUnlocked(item.id))
+                        .map(item => (
+                          <option key={item.id} value={item.value}>{item.label}</option>
+                        ))}
+                      {settings.background.startsWith('custom:') && <option value="__custom">Custom image</option>}
+                      <option value="__shop">Get more in Shop…</option>
+                    </select>
+                  </div>
 
                   {/* Show legal moves */}
                   <div className="flex items-center justify-between">

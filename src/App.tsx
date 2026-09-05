@@ -6,6 +6,7 @@ import { ProfileProvider } from './context/ProfileContext'
 import { WalletProvider } from './context/WalletContext'
 import RequireAuth from './components/Auth/RequireAuth'
 import Navbar from './components/Layout/Navbar'
+import AppBackground from './components/Layout/AppBackground'
 import PlayPage from './pages/PlayPage'
 import PuzzlesPage from './pages/PuzzlesPage'
 import LearnPage from './pages/LearnPage'
@@ -13,6 +14,7 @@ import LoginPage from './pages/LoginPage'
 import OnlineLobbyPage from './pages/OnlineLobbyPage'
 import OnlineGamePage from './pages/OnlineGamePage'
 import GameReviewPage from './pages/GameReviewPage'
+import ShopPage from './pages/ShopPage'
 
 export default function App() {
   return (
@@ -21,7 +23,8 @@ export default function App() {
         <ProfileProvider>
           <WalletProvider>
             <BrowserRouter>
-              <div className="min-h-screen bg-[var(--bg)] text-[var(--text-primary)]">
+              <AppBackground />
+              <div className="relative z-10 min-h-screen text-[var(--text-primary)]">
                 <Navbar />
                 <Routes>
                   <Route path="/" element={<Navigate to="/play" replace />} />
@@ -32,6 +35,7 @@ export default function App() {
                   <Route path="/puzzles" element={<PuzzlesPage />} />
                   <Route path="/learn" element={<LearnPage />} />
                   <Route path="/review" element={<GameReviewPage />} />
+                  <Route path="/shop" element={<ShopPage />} />
                 </Routes>
               </div>
             </BrowserRouter>
