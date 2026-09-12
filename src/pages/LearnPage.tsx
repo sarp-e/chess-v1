@@ -1,7 +1,9 @@
 import { useState } from 'react'
-import { Chessboard } from 'react-chessboard'
+import { Chessboard, defaultPieces } from 'react-chessboard'
 import { LESSONS } from '../data/lessons'
 import type { Lesson, LessonSection } from '../types'
+import { useSettings } from '../context/SettingsContext'
+import { standardPieces } from '../components/Board/pieceSets/standardPieces'
 
 const CATEGORY_LABELS: Record<string, string> = {
   fundamentals: 'Fundamentals',
@@ -18,6 +20,7 @@ const CATEGORY_COLORS: Record<string, string> = {
 }
 
 export default function LearnPage() {
+  const { settings } = useSettings()
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null)
   const [sectionIndex, setSectionIndex] = useState(0)
 
@@ -78,6 +81,7 @@ export default function LearnPage() {
                     allowDragging: false,
                     lightSquareStyle: { backgroundColor: 'var(--board-light)' },
                     darkSquareStyle: { backgroundColor: 'var(--board-dark)' },
+                    pieces: settings.pieceSet === 'cburnett' ? defaultPieces : standardPieces,
                     animationDurationInMs: 0,
                   }}
                 />
