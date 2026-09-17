@@ -4,7 +4,7 @@ import { Chess } from 'chess.js'
 import type { Square } from 'chess.js'
 import type { SquareHandlerArgs, PieceDropHandlerArgs, PieceHandlerArgs } from 'react-chessboard'
 import { useSettings } from '../../context/SettingsContext'
-import { standardPieces } from './pieceSets/standardPieces'
+import { modernPieces } from './pieceSets/modernPieces'
 
 interface ChessBoardProps {
   fen: string
@@ -244,7 +244,7 @@ export default function ChessBoard({
           allowDragging: !disabled || canPremove,
           lightSquareStyle: { backgroundColor: 'var(--board-light)' },
           darkSquareStyle: { backgroundColor: 'var(--board-dark)' },
-          pieces: settings.pieceSet === 'cburnett' ? defaultPieces : standardPieces,
+          pieces: settings.pieceSet === 'modern' ? modernPieces : defaultPieces,
           squareStyles,
           animationDurationInMs: 150,
         }}

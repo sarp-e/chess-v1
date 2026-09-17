@@ -1,8 +1,8 @@
 import type { PieceRenderObject } from 'react-chessboard'
 
-// Free "standard" piece set — flat geometric silhouettes, distinct from the
-// library's built-in default (which is the classic Cburnett set, sold
-// separately in the shop as the 'cburnett' pieceSet). Same 45x45 viewBox and
+// Paid "modern" piece set (shop item pieceSet:modern) — flat geometric
+// silhouettes, distinct from the library's built-in default (the classic
+// Cburnett set, which is the free default pieceSet). Same 45x45 viewBox and
 // footprint (base plinth at y=36-39) so both sets drop into the board
 // interchangeably. See src/components/Board/ChessBoard.tsx for the swap.
 
@@ -81,7 +81,7 @@ const SHAPES: Record<'P' | 'R' | 'N' | 'B' | 'Q' | 'K', (accent: string) => Reac
   ),
 }
 
-export const standardPieces: PieceRenderObject = Object.fromEntries(
+export const modernPieces: PieceRenderObject = Object.fromEntries(
   (['P', 'R', 'N', 'B', 'Q', 'K'] as const).flatMap(type => [
     [`w${type}`, () => piece('#ffffff', SHAPES[type]('#000000'))],
     [`b${type}`, () => piece('#000000', SHAPES[type]('#ffffff'))],
