@@ -11,10 +11,10 @@ export interface ShopItem {
   blurb: string
 }
 
-// standard pieceSet, walnut colorTheme and the "none" background are free
-// defaults — not listed here.
+// cburnett pieceSet (the classic set), walnut colorTheme and the "none"
+// background are free defaults — not listed here.
 export const SHOP_ITEMS: ShopItem[] = [
-  { id: 'pieceSet:cburnett', type: 'pieceSet', value: 'cburnett', price: 40, label: 'Cburnett', blurb: 'The classic Lichess piece set.' },
+  { id: 'pieceSet:modern', type: 'pieceSet', value: 'modern', price: 40, label: 'Modern', blurb: 'Flat, geometric silhouettes — a distinct modern look.' },
 
   { id: 'colorTheme:slate-mono', type: 'colorTheme', value: 'slate-mono', price: 30, label: 'Slate Mono', blurb: 'Greyscale, low-distraction board and UI.' },
   { id: 'colorTheme:championship-green', type: 'colorTheme', value: 'championship-green', price: 30, label: 'Championship', blurb: 'Tournament green with a cream light square.' },
@@ -32,7 +32,7 @@ export const SHOP_ITEMS: ShopItem[] = [
 ]
 
 export function isFreeItem(type: CosmeticType, value: string): boolean {
-  if (type === 'pieceSet') return value === 'standard'
+  if (type === 'pieceSet') return value === 'cburnett'
   if (type === 'background') return value === 'none'
   return (value as ColorTheme) === 'walnut'
 }

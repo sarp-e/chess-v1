@@ -223,7 +223,7 @@ export default function Navbar() {
                   <div>
                     <label className="text-[var(--text-muted)] text-xs mb-1.5 block">Piece Set</label>
                     <div className="flex gap-1">
-                      {(['standard', 'cburnett'] as const).map(set => {
+                      {(['cburnett', 'modern'] as const).map(set => {
                         const item = shopItemFor('pieceSet', set)
                         const locked = item && !isFreeItem('pieceSet', set) && !isUnlocked(item.id)
                         return (

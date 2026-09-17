@@ -125,7 +125,7 @@ export default function ShopPage() {
   }
 
   const equip = (item: ShopItem) => {
-    if (item.type === 'pieceSet') updateSettings({ pieceSet: item.value as 'standard' | 'cburnett' })
+    if (item.type === 'pieceSet') updateSettings({ pieceSet: item.value as 'cburnett' | 'modern' })
     else if (item.type === 'colorTheme') updateSettings({ colorTheme: item.value as ColorTheme })
     else updateSettings({ background: item.value as BackgroundId })
   }

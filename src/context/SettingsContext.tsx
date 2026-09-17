@@ -5,7 +5,7 @@ const DEFAULT_SETTINGS: Settings = {
   showLegalMoves: true,
   colorTheme: 'walnut',
   colorMode: 'system',
-  pieceSet: 'standard',
+  pieceSet: 'cburnett',
   allowPremove: false,
   background: 'none',
 }

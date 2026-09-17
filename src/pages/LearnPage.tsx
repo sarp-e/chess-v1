@@ -3,7 +3,7 @@ import { Chessboard, defaultPieces } from 'react-chessboard'
 import { LESSONS } from '../data/lessons'
 import type { Lesson, LessonSection } from '../types'
 import { useSettings } from '../context/SettingsContext'
-import { standardPieces } from '../components/Board/pieceSets/standardPieces'
+import { modernPieces } from '../components/Board/pieceSets/modernPieces'
 
 const CATEGORY_LABELS: Record<string, string> = {
   fundamentals: 'Fundamentals',
@@ -81,7 +81,7 @@ export default function LearnPage() {
                     allowDragging: false,
                     lightSquareStyle: { backgroundColor: 'var(--board-light)' },
                     darkSquareStyle: { backgroundColor: 'var(--board-dark)' },
-                    pieces: settings.pieceSet === 'cburnett' ? defaultPieces : standardPieces,
+                    pieces: settings.pieceSet === 'modern' ? modernPieces : defaultPieces,
                     animationDurationInMs: 0,
                   }}
                 />
