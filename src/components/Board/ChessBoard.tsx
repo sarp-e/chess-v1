@@ -1,9 +1,10 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react'
-import { Chessboard } from 'react-chessboard'
+import { Chessboard, defaultPieces } from 'react-chessboard'
 import { Chess } from 'chess.js'
 import type { Square } from 'chess.js'
 import type { SquareHandlerArgs, PieceDropHandlerArgs, PieceHandlerArgs } from 'react-chessboard'
 import { useSettings } from '../../context/SettingsContext'
+import { standardPieces } from './pieceSets/standardPieces'
 
 interface ChessBoardProps {
   fen: string
@@ -243,6 +244,7 @@ export default function ChessBoard({
           allowDragging: !disabled || canPremove,
           lightSquareStyle: { backgroundColor: 'var(--board-light)' },
           darkSquareStyle: { backgroundColor: 'var(--board-dark)' },
+          pieces: settings.pieceSet === 'cburnett' ? defaultPieces : standardPieces,
           squareStyles,
           animationDurationInMs: 150,
         }}
