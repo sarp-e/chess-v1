@@ -21,14 +21,14 @@ export const SHOP_ITEMS: ShopItem[] = [
   { id: 'colorTheme:forest', type: 'colorTheme', value: 'forest', price: 30, label: 'Forest', blurb: 'Muted olive and bark tones.' },
   { id: 'colorTheme:ocean', type: 'colorTheme', value: 'ocean', price: 30, label: 'Ocean', blurb: 'Cool teal and sand.' },
 
-  { id: 'background:flat', type: 'background', value: 'flat', price: 30, label: 'Flat', blurb: 'A soft single-tone wash tinted by your theme.' },
-  { id: 'background:ambient-glow', type: 'background', value: 'ambient-glow', price: 30, label: 'Ambient Glow', blurb: 'Two large accent-coloured light pools.' },
-  { id: 'background:vignette', type: 'background', value: 'vignette', price: 30, label: 'Vignette', blurb: 'Darkened edges that focus the centre.' },
-  { id: 'background:checkered', type: 'background', value: 'checkered', price: 30, label: 'Checkered', blurb: 'A faint oversized chequerboard.' },
-  { id: 'background:contour', type: 'background', value: 'contour', price: 30, label: 'Contour', blurb: 'Topographic line work.' },
-  { id: 'background:photo-aurora', type: 'background', value: 'photo-aurora', price: 30, label: 'Aurora', blurb: 'Green and violet light over deep blue.' },
-  { id: 'background:photo-dusk', type: 'background', value: 'photo-dusk', price: 30, label: 'Dusk', blurb: 'Warm sunset haze on plum.' },
-  { id: 'background:photo-lagoon', type: 'background', value: 'photo-lagoon', price: 30, label: 'Lagoon', blurb: 'Cyan and sand over teal water.' },
+  { id: 'background:flat', type: 'background', value: 'flat', price: 40, label: 'Flat', blurb: 'A soft single-tone wash tinted by your theme.' },
+  { id: 'background:ambient-glow', type: 'background', value: 'ambient-glow', price: 40, label: 'Ambient Glow', blurb: 'Two large accent-coloured light pools.' },
+  { id: 'background:vignette', type: 'background', value: 'vignette', price: 40, label: 'Vignette', blurb: 'Darkened edges that focus the centre.' },
+  { id: 'background:checkered', type: 'background', value: 'checkered', price: 40, label: 'Checkered', blurb: 'A faint oversized chequerboard.' },
+  { id: 'background:contour', type: 'background', value: 'contour', price: 40, label: 'Contour', blurb: 'Topographic line work.' },
+  { id: 'background:photo-aurora', type: 'background', value: 'photo-aurora', price: 40, label: 'Aurora', blurb: 'Green and violet light over deep blue.' },
+  { id: 'background:photo-dusk', type: 'background', value: 'photo-dusk', price: 40, label: 'Dusk', blurb: 'Warm sunset haze on plum.' },
+  { id: 'background:photo-lagoon', type: 'background', value: 'photo-lagoon', price: 40, label: 'Lagoon', blurb: 'Cyan and sand over teal water.' },
 ]
 
 export function isFreeItem(type: CosmeticType, value: string): boolean {
