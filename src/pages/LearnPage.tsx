@@ -97,7 +97,7 @@ export default function LearnPage() {
                     allowDragging: false,
                     lightSquareStyle: { backgroundColor: 'var(--board-light)' },
                     darkSquareStyle: { backgroundColor: 'var(--board-dark)' },
-                    pieces: settings.pieceSet === 'cburnett' ? defaultPieces : PIECE_SETS[settings.pieceSet],
+                    pieces: settings.pieceSet === 'cburnett' ? defaultPieces : (PIECE_SETS[settings.pieceSet] ?? defaultPieces),
                     animationDurationInMs: 0,
                   }}
                 />
