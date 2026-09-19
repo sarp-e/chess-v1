@@ -9,6 +9,8 @@ import { modernPieces } from './pieceSets/modernPieces'
 import { outlinedPieces } from './pieceSets/outlinedPieces'
 import { sculptedPieces } from './pieceSets/sculptedPieces'
 import { glassPieces } from './pieceSets/glassPieces'
+import { bauhausPieces } from './pieceSets/bauhausPieces'
+import { linePieces } from './pieceSets/linePieces'
 
 // Every paid set; 'cburnett' is the free default and comes from the library.
 const PIECE_SETS: Record<Exclude<Settings['pieceSet'], 'cburnett'>, PieceRenderObject> = {
@@ -16,6 +18,8 @@ const PIECE_SETS: Record<Exclude<Settings['pieceSet'], 'cburnett'>, PieceRenderO
   outlined: outlinedPieces,
   sculpted: sculptedPieces,
   glass: glassPieces,
+  bauhaus: bauhausPieces,
+  line: linePieces,
 }
 
 interface ChessBoardProps {
@@ -256,7 +260,7 @@ export default function ChessBoard({
           allowDragging: !disabled || canPremove,
           lightSquareStyle: { backgroundColor: 'var(--board-light)' },
           darkSquareStyle: { backgroundColor: 'var(--board-dark)' },
-          pieces: settings.pieceSet === 'cburnett' ? defaultPieces : PIECE_SETS[settings.pieceSet],
+          pieces: settings.pieceSet === 'cburnett' ? defaultPieces : (PIECE_SETS[settings.pieceSet] ?? defaultPieces),
           squareStyles,
           animationDurationInMs: 150,
         }}

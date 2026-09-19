@@ -8,6 +8,8 @@ import { modernPieces } from '../components/Board/pieceSets/modernPieces'
 import { outlinedPieces } from '../components/Board/pieceSets/outlinedPieces'
 import { sculptedPieces } from '../components/Board/pieceSets/sculptedPieces'
 import { glassPieces } from '../components/Board/pieceSets/glassPieces'
+import { bauhausPieces } from '../components/Board/pieceSets/bauhausPieces'
+import { linePieces } from '../components/Board/pieceSets/linePieces'
 
 // Every paid set; 'cburnett' is the free default and comes from the library.
 const PIECE_SETS: Record<Exclude<Settings['pieceSet'], 'cburnett'>, PieceRenderObject> = {
@@ -15,6 +17,8 @@ const PIECE_SETS: Record<Exclude<Settings['pieceSet'], 'cburnett'>, PieceRenderO
   outlined: outlinedPieces,
   sculpted: sculptedPieces,
   glass: glassPieces,
+  bauhaus: bauhausPieces,
+  line: linePieces,
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -93,7 +97,7 @@ export default function LearnPage() {
                     allowDragging: false,
                     lightSquareStyle: { backgroundColor: 'var(--board-light)' },
                     darkSquareStyle: { backgroundColor: 'var(--board-dark)' },
-                    pieces: settings.pieceSet === 'cburnett' ? defaultPieces : PIECE_SETS[settings.pieceSet],
+                    pieces: settings.pieceSet === 'cburnett' ? defaultPieces : (PIECE_SETS[settings.pieceSet] ?? defaultPieces),
                     animationDurationInMs: 0,
                   }}
                 />
