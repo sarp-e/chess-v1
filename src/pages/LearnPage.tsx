@@ -1,9 +1,21 @@
 import { useState } from 'react'
 import { Chessboard, defaultPieces } from 'react-chessboard'
 import { LESSONS } from '../data/lessons'
-import type { Lesson, LessonSection } from '../types'
+import type { PieceRenderObject } from 'react-chessboard'
+import type { Lesson, LessonSection, Settings } from '../types'
 import { useSettings } from '../context/SettingsContext'
 import { modernPieces } from '../components/Board/pieceSets/modernPieces'
+import { outlinedPieces } from '../components/Board/pieceSets/outlinedPieces'
+import { sculptedPieces } from '../components/Board/pieceSets/sculptedPieces'
+import { glassPieces } from '../components/Board/pieceSets/glassPieces'
+
+// Every paid set; 'cburnett' is the free default and comes from the library.
+const PIECE_SETS: Record<Exclude<Settings['pieceSet'], 'cburnett'>, PieceRenderObject> = {
+  modern: modernPieces,
+  outlined: outlinedPieces,
+  sculpted: sculptedPieces,
+  glass: glassPieces,
+}
 
 const CATEGORY_LABELS: Record<string, string> = {
   fundamentals: 'Fundamentals',
@@ -81,7 +93,7 @@ export default function LearnPage() {
                     allowDragging: false,
                     lightSquareStyle: { backgroundColor: 'var(--board-light)' },
                     darkSquareStyle: { backgroundColor: 'var(--board-dark)' },
-                    pieces: settings.pieceSet === 'modern' ? modernPieces : defaultPieces,
+                    pieces: settings.pieceSet === 'cburnett' ? defaultPieces : PIECE_SETS[settings.pieceSet],
                     animationDurationInMs: 0,
                   }}
                 />

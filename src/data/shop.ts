@@ -15,6 +15,9 @@ export interface ShopItem {
 // background are free defaults — not listed here.
 export const SHOP_ITEMS: ShopItem[] = [
   { id: 'pieceSet:modern', type: 'pieceSet', value: 'modern', price: 40, label: 'Modern', blurb: 'Flat, geometric silhouettes — a distinct modern look.' },
+  { id: 'pieceSet:outlined', type: 'pieceSet', value: 'outlined', price: 40, label: 'Outlined', blurb: 'Crisp contrast edges — the most legible set at small sizes.' },
+  { id: 'pieceSet:sculpted', type: 'pieceSet', value: 'sculpted', price: 40, label: 'Sculpted', blurb: 'Pseudo-3D relief shading that reads as a physical piece on the board.' },
+  { id: 'pieceSet:glass', type: 'pieceSet', value: 'glass', price: 40, label: 'Glass', blurb: 'Translucent tinted pieces with a soft sheen.' },
 
   { id: 'colorTheme:slate-mono', type: 'colorTheme', value: 'slate-mono', price: 30, label: 'Slate Mono', blurb: 'Greyscale, low-distraction board and UI.' },
   { id: 'colorTheme:championship-green', type: 'colorTheme', value: 'championship-green', price: 30, label: 'Championship', blurb: 'Tournament green with a cream light square.' },

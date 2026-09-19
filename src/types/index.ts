@@ -56,7 +56,7 @@ export interface Settings {
   showLegalMoves: boolean
   colorTheme: ColorTheme
   colorMode: ColorMode
-  pieceSet: 'cburnett' | 'modern'
+  pieceSet: 'cburnett' | 'modern' | 'outlined' | 'sculpted' | 'glass'
   allowPremove: boolean
   background: BackgroundId
 }
