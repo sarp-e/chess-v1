@@ -29,6 +29,7 @@ export const SHOP_ITEMS: ShopItem[] = [
   { id: 'background:photo-aurora', type: 'background', value: 'photo-aurora', price: 40, label: 'Aurora', blurb: 'Green and violet light over deep blue.' },
   { id: 'background:photo-dusk', type: 'background', value: 'photo-dusk', price: 40, label: 'Dusk', blurb: 'Warm sunset haze on plum.' },
   { id: 'background:photo-lagoon', type: 'background', value: 'photo-lagoon', price: 40, label: 'Lagoon', blurb: 'Cyan and sand over teal water.' },
+  { id: 'background:custom', type: 'background', value: 'custom-unlock', price: 40, label: 'Custom Image Upload', blurb: 'Unlock uploading your own background images.' },
 ]
 
 export function isFreeItem(type: CosmeticType, value: string): boolean {
