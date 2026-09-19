@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { useWallet } from '../context/WalletContext'
 import { useAuth } from '../context/AuthContext'
 import { useSettings } from '../context/SettingsContext'
-import { shopItemFor, shopItemsOfType, type ShopItem } from '../data/shop'
+import { shopItemsOfType, type ShopItem } from '../data/shop'
 import {
   addCustomBackground,
   deleteCustomBackground,
@@ -94,7 +94,7 @@ function ItemCard({
 }
 
 export default function ShopPage() {
-  const { tokens, isUnlocked, unlockItem } = useWallet()
+  const { tokens, isUnlocked, unlockItem, chargeCustomBackground } = useWallet()
   const { user } = useAuth()
   const { settings, updateSettings } = useSettings()
   const [message, setMessage] = useState<string | null>(null)
@@ -105,7 +105,6 @@ export default function ShopPage() {
   const fileRef = useRef<HTMLInputElement>(null)
 
   const signedIn = !!user
-  const customUnlocked = isUnlocked('background:custom')
 
   useEffect(() => {
     listCustomBackgrounds().then(setCustoms)
@@ -125,8 +124,6 @@ export default function ShopPage() {
     }
   }
 
-  const handleBuyCustomUnlock = () => handleBuy(shopItemFor('background', 'custom-unlock')!)
-
   const equip = (item: ShopItem) => {
     if (item.type === 'pieceSet') updateSettings({ pieceSet: item.value as 'cburnett' | 'modern' })
     else if (item.type === 'colorTheme') updateSettings({ colorTheme: item.value as ColorTheme })
@@ -141,7 +138,16 @@ export default function ShopPage() {
       setMessage(err)
       return
     }
+    if (!signedIn) {
+      setMessage('Sign in to buy custom backgrounds.')
+      return
+    }
     setMessage(null)
+    const charged = await chargeCustomBackground()
+    if (!charged) {
+      setMessage(`Couldn't charge 40 🪙 for this upload — you have ${tokens} 🪙.`)
+      return
+    }
     const record = await addCustomBackground(file)
     await refreshCustoms()
     updateSettings({ background: `custom:${record.id}` })
@@ -180,77 +186,60 @@ export default function ShopPage() {
         <section key={section.type} className="mb-8">
           <h2 className="text-[var(--text-primary)] font-semibold mb-3">{section.title}</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {shopItemsOfType(section.type)
-              .filter(item => item.id !== 'background:custom')
-              .map(item => {
-                const owned = isUnlocked(item.id)
-                const active =
-                  (item.type === 'pieceSet' && settings.pieceSet === item.value) ||
-                  (item.type === 'colorTheme' && settings.colorTheme === item.value) ||
-                  (item.type === 'background' && settings.background === item.value)
-                return (
-                  <ItemCard
-                    key={item.id}
-                    item={item}
-                    owned={owned}
-                    active={active}
-                    balance={tokens}
-                    signedIn={signedIn}
-                    onBuy={busy ? () => {} : handleBuy}
-                    onEquip={equip}
-                  />
-                )
-              })}
+            {shopItemsOfType(section.type).map(item => {
+              const owned = isUnlocked(item.id)
+              const active =
+                (item.type === 'pieceSet' && settings.pieceSet === item.value) ||
+                (item.type === 'colorTheme' && settings.colorTheme === item.value) ||
+                (item.type === 'background' && settings.background === item.value)
+              return (
+                <ItemCard
+                  key={item.id}
+                  item={item}
+                  owned={owned}
+                  active={active}
+                  balance={tokens}
+                  signedIn={signedIn}
+                  onBuy={busy ? () => {} : handleBuy}
+                  onEquip={equip}
+                />
+              )
+            })}
           </div>
 
           {section.type === 'background' && (
             <div className="mt-4">
               <h3 className="text-[var(--text-secondary)] text-sm font-medium mb-2">Your Images</h3>
-              {customUnlocked ? (
-                <>
-                  <div
-                    onDragOver={e => {
-                      e.preventDefault()
-                      setDragOver(true)
-                    }}
-                    onDragLeave={() => setDragOver(false)}
-                    onDrop={e => {
-                      e.preventDefault()
-                      setDragOver(false)
-                      handleFiles(e.dataTransfer.files)
-                    }}
-                    onClick={() => fileRef.current?.click()}
-                    className={`cursor-pointer rounded-xl border-2 border-dashed px-4 py-6 text-center text-sm transition-colors ${
-                      dragOver
-                        ? 'border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--accent)]'
-                        : 'border-[var(--border)] text-[var(--text-muted)] hover:border-[var(--text-muted)]'
-                    }`}
-                  >
-                    Drop an image here, or click to choose one. Stored on this device only · max 4&nbsp;MB.
-                  </div>
-                  <input
-                    ref={fileRef}
-                    type="file"
-                    accept="image/*"
-                    hidden
-                    onChange={e => {
-                      handleFiles(e.target.files)
-                      e.target.value = ''
-                    }}
-                  />
-                </>
-              ) : (
-                <div className="rounded-xl border-2 border-dashed border-[var(--border)] px-4 py-6 text-center text-sm">
-                  <div className="text-[var(--text-muted)] mb-3">🔒 Upload your own background images</div>
-                  <button
-                    onClick={handleBuyCustomUnlock}
-                    disabled={!signedIn || tokens < 40}
-                    className="py-1.5 px-4 text-xs font-medium rounded-lg bg-[var(--accent)] text-white hover:bg-[var(--accent-hover)] transition-colors disabled:opacity-50"
-                  >
-                    {!signedIn ? 'Sign in to buy' : tokens >= 40 ? 'Buy · 40 🪙' : '40 🪙 — not enough'}
-                  </button>
-                </div>
-              )}
+              <div
+                onDragOver={e => {
+                  e.preventDefault()
+                  setDragOver(true)
+                }}
+                onDragLeave={() => setDragOver(false)}
+                onDrop={e => {
+                  e.preventDefault()
+                  setDragOver(false)
+                  handleFiles(e.dataTransfer.files)
+                }}
+                onClick={() => fileRef.current?.click()}
+                className={`cursor-pointer rounded-xl border-2 border-dashed px-4 py-6 text-center text-sm transition-colors ${
+                  dragOver
+                    ? 'border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--accent)]'
+                    : 'border-[var(--border)] text-[var(--text-muted)] hover:border-[var(--text-muted)]'
+                }`}
+              >
+                Drop an image here, or click to choose one. Stored on this device only · max 4&nbsp;MB · 40&nbsp;🪙 per image.
+              </div>
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*"
+                hidden
+                onChange={e => {
+                  handleFiles(e.target.files)
+                  e.target.value = ''
+                }}
+              />
 
               {customs.length > 0 && (
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-3">
