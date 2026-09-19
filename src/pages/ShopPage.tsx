@@ -11,7 +11,7 @@ import {
   listCustomBackgrounds,
   type CustomBackground,
 } from '../lib/bgStore'
-import type { BackgroundId, ColorTheme } from '../types'
+import type { BackgroundId, ColorTheme, Settings } from '../types'
 
 const THEME_SWATCH: Record<string, [string, string]> = {
   'slate-mono': ['#eaeaea', '#9a9a9a'],
@@ -125,7 +125,7 @@ export default function ShopPage() {
   }
 
   const equip = (item: ShopItem) => {
-    if (item.type === 'pieceSet') updateSettings({ pieceSet: item.value as 'cburnett' | 'modern' })
+    if (item.type === 'pieceSet') updateSettings({ pieceSet: item.value as Settings['pieceSet'] })
     else if (item.type === 'colorTheme') updateSettings({ colorTheme: item.value as ColorTheme })
     else updateSettings({ background: item.value as BackgroundId })
   }

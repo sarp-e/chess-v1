@@ -222,15 +222,16 @@ export default function Navbar() {
                   {/* Piece set */}
                   <div>
                     <label className="text-[var(--text-muted)] text-xs mb-1.5 block">Piece Set</label>
-                    <div className="flex gap-1">
-                      {(['cburnett', 'modern'] as const).map(set => {
+                    <div className="grid grid-cols-2 gap-1">
+                      {(['cburnett', 'modern', 'outlined', 'sculpted', 'glass'] as const).map(set => {
                         const item = shopItemFor('pieceSet', set)
                         const locked = item && !isFreeItem('pieceSet', set) && !isUnlocked(item.id)
                         return (
                           <button
                             key={set}
                             onClick={() => handleSelectCustomization('pieceSet', set)}
-                            className={`flex-1 py-1 text-xs rounded capitalize transition-colors ${
+                            title={locked ? `${item!.label} — ${item!.price} 🪙` : undefined}
+                            className={`py-1 text-xs rounded capitalize truncate transition-colors ${
                               settings.pieceSet === set
                                 ? 'bg-[var(--accent)] text-white'
                                 : 'bg-[var(--panel-alt)] text-[var(--text-secondary)] hover:bg-[var(--border)]'

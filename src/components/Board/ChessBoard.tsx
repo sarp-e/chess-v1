@@ -2,9 +2,21 @@ import React, { useState, useCallback, useEffect, useRef } from 'react'
 import { Chessboard, defaultPieces } from 'react-chessboard'
 import { Chess } from 'chess.js'
 import type { Square } from 'chess.js'
-import type { SquareHandlerArgs, PieceDropHandlerArgs, PieceHandlerArgs } from 'react-chessboard'
+import type { SquareHandlerArgs, PieceDropHandlerArgs, PieceHandlerArgs, PieceRenderObject } from 'react-chessboard'
+import type { Settings } from '../../types'
 import { useSettings } from '../../context/SettingsContext'
 import { modernPieces } from './pieceSets/modernPieces'
+import { outlinedPieces } from './pieceSets/outlinedPieces'
+import { sculptedPieces } from './pieceSets/sculptedPieces'
+import { glassPieces } from './pieceSets/glassPieces'
+
+// Every paid set; 'cburnett' is the free default and comes from the library.
+const PIECE_SETS: Record<Exclude<Settings['pieceSet'], 'cburnett'>, PieceRenderObject> = {
+  modern: modernPieces,
+  outlined: outlinedPieces,
+  sculpted: sculptedPieces,
+  glass: glassPieces,
+}
 
 interface ChessBoardProps {
   fen: string
@@ -244,7 +256,7 @@ export default function ChessBoard({
           allowDragging: !disabled || canPremove,
           lightSquareStyle: { backgroundColor: 'var(--board-light)' },
           darkSquareStyle: { backgroundColor: 'var(--board-dark)' },
-          pieces: settings.pieceSet === 'modern' ? modernPieces : defaultPieces,
+          pieces: settings.pieceSet === 'cburnett' ? defaultPieces : PIECE_SETS[settings.pieceSet],
           squareStyles,
           animationDurationInMs: 150,
         }}
