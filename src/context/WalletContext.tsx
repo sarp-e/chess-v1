@@ -10,6 +10,7 @@ interface WalletContextValue {
   awardBotWin: (botElo: number) => Promise<number>
   awardOnlineWin: (gameId: string) => Promise<number>
   unlockItem: (itemId: string) => Promise<boolean>
+  chargeCustomBackground: () => Promise<boolean>
 }
 
 const WalletContext = createContext<WalletContextValue | null>(null)
@@ -63,10 +64,18 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     return Boolean(data)
   }, [user, refresh])
 
+  const chargeCustomBackground = useCallback(async (): Promise<boolean> => {
+    if (!user) return false
+    const { data, error } = await supabase.rpc('charge_custom_background_upload')
+    if (error) return false
+    await refresh()
+    return Boolean(data)
+  }, [user, refresh])
+
   const isUnlocked = useCallback((itemId: string) => unlocked.has(itemId), [unlocked])
 
   return (
-    <WalletContext.Provider value={{ tokens, unlocked, loading, isUnlocked, awardBotWin, awardOnlineWin, unlockItem }}>
+    <WalletContext.Provider value={{ tokens, unlocked, loading, isUnlocked, awardBotWin, awardOnlineWin, unlockItem, chargeCustomBackground }}>
       {children}
     </WalletContext.Provider>
   )

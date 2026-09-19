@@ -94,7 +94,7 @@ function ItemCard({
 }
 
 export default function ShopPage() {
-  const { tokens, isUnlocked, unlockItem } = useWallet()
+  const { tokens, isUnlocked, unlockItem, chargeCustomBackground } = useWallet()
   const { user } = useAuth()
   const { settings, updateSettings } = useSettings()
   const [message, setMessage] = useState<string | null>(null)
@@ -138,7 +138,16 @@ export default function ShopPage() {
       setMessage(err)
       return
     }
+    if (!signedIn) {
+      setMessage('Sign in to buy custom backgrounds.')
+      return
+    }
     setMessage(null)
+    const charged = await chargeCustomBackground()
+    if (!charged) {
+      setMessage(`Couldn't charge 40 🪙 for this upload — you have ${tokens} 🪙.`)
+      return
+    }
     const record = await addCustomBackground(file)
     await refreshCustoms()
     updateSettings({ background: `custom:${record.id}` })
@@ -219,7 +228,7 @@ export default function ShopPage() {
                     : 'border-[var(--border)] text-[var(--text-muted)] hover:border-[var(--text-muted)]'
                 }`}
               >
-                Drop an image here, or click to choose one. Stored on this device only · max 4&nbsp;MB · free.
+                Drop an image here, or click to choose one. Stored on this device only · max 4&nbsp;MB · 40&nbsp;🪙 per image.
               </div>
               <input
                 ref={fileRef}
