@@ -178,12 +178,27 @@ export default function ShopPage() {
         )}
       </div>
 
+      <div className="flex flex-wrap gap-2 mb-6">
+        {sections.map(section => (
+          <button
+            key={section.type}
+            type="button"
+            onClick={() =>
+              document.getElementById(`shop-${section.type}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+            }
+            className="bg-[var(--panel)] border border-[var(--border)] rounded-full px-3 py-1 text-xs font-medium text-[var(--text-primary)] hover:bg-[var(--panel-alt)] transition-colors"
+          >
+            {section.title}
+          </button>
+        ))}
+      </div>
+
       {message && (
         <div className="mb-4 text-[var(--danger)] text-sm bg-[var(--danger-soft)] rounded-lg px-3 py-2">{message}</div>
       )}
 
       {sections.map(section => (
-        <section key={section.type} className="mb-8">
+        <section key={section.type} id={`shop-${section.type}`} className="mb-8 scroll-mt-4">
           <h2 className="text-[var(--text-primary)] font-semibold mb-3">{section.title}</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {shopItemsOfType(section.type).map(item => {
