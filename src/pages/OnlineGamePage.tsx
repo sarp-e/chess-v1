@@ -20,13 +20,14 @@ export default function OnlineGamePage() {
   const { user } = useAuth()
   const { awardOnlineWin } = useWallet()
   const [copied, setCopied] = useState(false)
+  const [codeCopied, setCodeCopied] = useState(false)
   const [confirming, setConfirming] = useState<'draw' | 'resign' | null>(null)
   const [tokensEarned, setTokensEarned] = useState<number | null>(null)
   const awardedRef = useRef(false)
 
   const {
     fen, moves, status, result, myColor, isMyTurn, lastMove,
-    drawOfferPending, incomingDrawOffer, rematchGameId,
+    drawOfferPending, incomingDrawOffer, rematchGameId, code,
     makeMove, resign, offerDraw, acceptDraw, declineDraw, requestRematch,
   } = useOnlineGame(gameId ?? '', user!.id)
 
@@ -52,6 +53,13 @@ export default function OnlineGamePage() {
     navigator.clipboard.writeText(window.location.href)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  const handleCopyCode = () => {
+    if (!code) return
+    navigator.clipboard.writeText(code)
+    setCodeCopied(true)
+    setTimeout(() => setCodeCopied(false), 2000)
   }
 
   if (status === 'loading') {
@@ -112,6 +120,18 @@ export default function OnlineGamePage() {
             >
               {copied ? 'Copied!' : 'Copy invite link'}
             </button>
+            {code && (
+              <>
+                <p className="text-[var(--text-secondary)] text-sm text-center">Or share this code:</p>
+                <div className="text-center text-3xl font-mono font-bold tracking-widest text-[var(--text-primary)]">{code}</div>
+                <button
+                  onClick={handleCopyCode}
+                  className="w-full py-2 bg-[var(--panel)] hover:bg-[var(--border)] border border-[var(--border)] text-[var(--text-primary)] text-sm font-medium rounded-lg transition-colors"
+                >
+                  {codeCopied ? 'Copied!' : 'Copy code'}
+                </button>
+              </>
+            )}
             <div className="flex items-center justify-center gap-2 text-[var(--text-muted)] text-xs">
               <span className="inline-block w-3 h-3 border-2 border-[var(--text-muted)] border-t-transparent rounded-full animate-spin" />
               Waiting…
