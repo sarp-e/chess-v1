@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react'
+import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react'
 import { Chessboard, defaultPieces } from 'react-chessboard'
 import { Chess } from 'chess.js'
 import type { Square, Move } from 'chess.js'
@@ -10,6 +10,7 @@ import { ANIMATED_PIECES_ITEM_ID } from '../../data/shop'
 import AnimationOverlay from './animation/AnimationOverlay'
 import { detectMove, maskedSquares, positionWithout } from './animation/engine'
 import { usePrefersReducedMotion } from './animation/usePrefersReducedMotion'
+import { withHelmets } from './animation/helmets'
 import { modernPieces } from './pieceSets/modernPieces'
 import { outlinedPieces } from './pieceSets/outlinedPieces'
 import { sculptedPieces } from './pieceSets/sculptedPieces'
@@ -92,7 +93,8 @@ export default function ChessBoard({
   // when the new fen is exactly one legal move after the previous one, an
   // overlay plays the choreography while the real board hides the squares the
   // overlay is drawing. Any newer fen replaces (and so cancels) the running show.
-  const animate = settings.animatedPieces && isUnlocked(ANIMATED_PIECES_ITEM_ID) && !reducedMotion
+  const bundleOn = settings.animatedPieces && isUnlocked(ANIMATED_PIECES_ITEM_ID)
+  const animate = bundleOn && !reducedMotion
   const [seenFen, setSeenFen] = useState(fen)
   const [anim, setAnim] = useState<{ key: string; move: Move } | null>(null)
   if (fen !== seenFen) {
@@ -102,7 +104,12 @@ export default function ChessBoard({
   }
   const playing = animate ? anim : null
   const finishAnim = useCallback(() => setAnim(null), [])
-  const pieces = settings.pieceSet === 'cburnett' ? defaultPieces : (PIECE_SETS[settings.pieceSet] ?? defaultPieces)
+  const isCburnett = settings.pieceSet === 'cburnett'
+  // Costume art (incl. the permanent pawn helmets) exists only for cburnett.
+  const pieces = useMemo(
+    () => (isCburnett ? (bundleOn ? withHelmets(defaultPieces) : defaultPieces) : (PIECE_SETS[settings.pieceSet as keyof typeof PIECE_SETS] ?? defaultPieces)),
+    [isCburnett, bundleOn, settings.pieceSet],
+  )
 
   // Fire the next queued premove once it becomes the player's turn again. `lastMove`
   // is null right after a fresh game starts, which distinguishes "opponent replied"
@@ -296,7 +303,7 @@ export default function ChessBoard({
           move={playing.move}
           orientation={orientation}
           pieces={pieces}
-          costumes={settings.pieceSet === 'cburnett'}
+          costumes={isCburnett}
           onDone={finishAnim}
         />
       )}

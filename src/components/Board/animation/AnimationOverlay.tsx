@@ -4,6 +4,7 @@ import type { PieceRenderObject } from 'react-chessboard'
 import { toKeyframes, type Actor, type Orientation } from './engine'
 import { choreograph } from './choreo'
 import { Sprite } from './sprites'
+import { CostumedPiece } from './costumes'
 
 interface Props {
   move: Move
@@ -63,7 +64,7 @@ export default function AnimationOverlay({ move, orientation, pieces, costumes, 
               style={{ width: '100%', height: '100%', transformOrigin: actor.origin ?? '50% 50%', willChange: 'transform' }}
             >
               {actor.content.kind === 'piece'
-                ? <ActorPiece pieces={pieces} piece={actor.content.piece} />
+                ? <CostumedPiece pieces={pieces} piece={actor.content.piece} costume={costumes ? actor.content.costume : undefined} />
                 : <Sprite kind={actor.content.sprite} tone={actor.content.tone} />}
             </div>
           </div>
@@ -76,9 +77,4 @@ export default function AnimationOverlay({ move, orientation, pieces, costumes, 
 function start(actor: Actor) {
   const f = [...actor.frames].sort((a, b) => a.t - b.t)[0]
   return { x: f.x, y: f.y }
-}
-
-function ActorPiece({ pieces, piece }: { pieces: PieceRenderObject; piece: string }) {
-  const Svg = pieces[piece]
-  return Svg ? <Svg /> : null
 }
