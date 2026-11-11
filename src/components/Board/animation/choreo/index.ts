@@ -7,6 +7,7 @@ import {
   pieceActor,
   pieceCode,
   sub,
+  unit,
   type Choreography,
   type ChoreoContext,
   type Orientation,
@@ -15,6 +16,9 @@ import {
 import { pawnMove } from './pawn'
 import { knightMove } from './knight'
 import { bishopMove } from './bishop'
+import { rookMove } from './rook'
+import { queenMove } from './queen'
+import { kingMove } from './king'
 
 function slide(id: string, piece: string, a: Vec, b: Vec, t0 = 0): Choreography {
   const travel = Math.max(400, 250 + 120 * len(sub(b, a)))
@@ -25,13 +29,21 @@ function slide(id: string, piece: string, a: Vec, b: Vec, t0 = 0): Choreography 
 }
 
 export function choreograph(move: Move, orientation: Orientation, costumes: boolean): Choreography {
+  const from = cell(move.from, orientation)
+  const to = cell(move.to, orientation)
+  const victimSq = capturedSquare(move)
   const ctx: ChoreoContext = {
     move,
     orientation,
-    from: cell(move.from, orientation),
-    to: cell(move.to, orientation),
+    from,
+    to,
     piece: pieceCode(move.color, move.piece),
     costumes,
+    dir: unit(sub(to, from)),
+    dist: len(sub(to, from)),
+    victim: victimSq
+      ? { piece: pieceCode(move.color === 'w' ? 'b' : 'w', move.captured!), at: cell(victimSq, orientation) }
+      : null,
   }
 
   if (move.flags.includes('k') || move.flags.includes('q')) {
@@ -43,25 +55,12 @@ export function choreograph(move: Move, orientation: Orientation, costumes: bool
     return { duration: Math.max(king.duration, rook.duration), actors: [...king.actors, ...rook.actors] }
   }
 
-  let c: Choreography
   switch (move.piece) {
-    case 'p': c = pawnMove(ctx); break
-    case 'n': c = knightMove(ctx); break
-    case 'b': c = bishopMove(ctx); break
-    default: c = slide('mover', ctx.piece, ctx.from, ctx.to)
+    case 'p': return pawnMove(ctx)
+    case 'n': return knightMove(ctx)
+    case 'b': return bishopMove(ctx)
+    case 'r': return rookMove(ctx)
+    case 'q': return queenMove(ctx)
+    default: return kingMove(ctx)
   }
-
-  // Until each piece has its own capture routine, the victim just fades as
-  // the attacker arrives.
-  const victimSq = capturedSquare(move)
-  if (victimSq) {
-    const p = cell(victimSq, orientation)
-    const hit = c.duration * 0.8
-    c.actors.unshift(pieceActor('victim', pieceCode(move.color === 'w' ? 'b' : 'w', move.captured!), [
-      at(0, p),
-      at(hit, p, { ease: 'ease-out' }),
-      at(c.duration, p, { o: 0, s: 0.6 }),
-    ], 1))
-  }
-  return c
 }

@@ -80,6 +80,9 @@ export interface ChoreoContext {
   to: Vec
   piece: string // e.g. 'wN'
   costumes: boolean // costume art only on the cburnett set
+  dir: Vec // unit vector from → to
+  dist: number // squares from → to
+  victim: { piece: string; at: Vec } | null
 }
 
 export const pieceCode = (color: string, type: string) => `${color}${type.toUpperCase()}`
@@ -121,6 +124,22 @@ export function arc(t0: number, t1: number, a: Vec, b: Vec, height: number, grow
     const bump = 4 * p * (1 - p)
     const pos = lerp(a, b, p)
     out.push({ t: t0 + (t1 - t0) * p, x: pos.x, y: pos.y - height * bump, s: 1 + grow * bump, r: tilt * (1 - 2 * p) })
+  }
+  return out
+}
+
+/**
+ * Walking/running gait from a to b: constant pace with a step bob and an
+ * alternating sway. `stepsPerSquare` sets the cadence.
+ */
+export function walk(t0: number, t1: number, a: Vec, b: Vec, stepsPerSquare: number, bob: number, sway: number, s = 1): Frame[] {
+  const steps = Math.max(2, Math.round(len(sub(b, a)) * stepsPerSquare)) * 2
+  const out: Frame[] = []
+  for (let i = 0; i <= steps; i++) {
+    const p = i / steps
+    const pos = lerp(a, b, p)
+    const up = i % 2 === 1 && i < steps
+    out.push({ t: t0 + (t1 - t0) * p, x: pos.x, y: pos.y - (up ? bob : 0), r: up ? sway * (i % 4 === 1 ? 1 : -1) : 0, s, ease: 'ease-in-out' })
   }
   return out
 }
