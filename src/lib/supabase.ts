@@ -14,6 +14,7 @@ export type GameResult = 'white' | 'black' | 'draw'
 
 export interface GameRow {
   id: string
+  code: string
   white_id: string
   black_id: string | null
   fen: string

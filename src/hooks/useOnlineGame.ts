@@ -16,6 +16,7 @@ export interface OnlineGameState {
   drawOfferPending: boolean
   incomingDrawOffer: boolean
   rematchGameId: string | null
+  code: string | null
   rematchOfferPending: boolean
   incomingRematchOffer: boolean
   makeMove: (from: string, to: string) => Promise<boolean>
@@ -247,6 +248,7 @@ export function useOnlineGame(gameId: string, userId: string): OnlineGameState {
     drawOfferPending,
     incomingDrawOffer,
     rematchGameId,
+    code: game?.code ?? null,
     rematchOfferPending,
     incomingRematchOffer,
     makeMove,
