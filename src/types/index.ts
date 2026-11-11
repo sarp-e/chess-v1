@@ -59,6 +59,7 @@ export interface Settings {
   pieceSet: 'cburnett' | 'modern' | 'outlined' | 'sculpted' | 'glass' | 'bauhaus' | 'line'
   allowPremove: boolean
   background: BackgroundId
+  animatedPieces: boolean
 }
 
 export interface Lesson {

@@ -33,6 +33,13 @@ function Preview({ item }: { item: ShopItem }) {
   if (item.type === 'background') {
     return <div className="bg-swatch aspect-video border border-[var(--border)]" data-bg-style={item.value} />
   }
+  if (item.type === 'animation') {
+    return (
+      <div className="aspect-video rounded-md border border-[var(--border)] bg-[var(--panel-alt)] grid place-items-center text-2xl tracking-widest text-[var(--text-primary)]">
+        <span className="shop-anim-preview">♞</span>
+      </div>
+    )
+  }
   // pieceSet
   return (
     <div className="aspect-video rounded-md border border-[var(--border)] bg-[var(--panel-alt)] grid place-items-center text-2xl tracking-widest text-[var(--text-primary)]">
@@ -127,6 +134,7 @@ export default function ShopPage() {
   const equip = (item: ShopItem) => {
     if (item.type === 'pieceSet') updateSettings({ pieceSet: item.value as Settings['pieceSet'] })
     else if (item.type === 'colorTheme') updateSettings({ colorTheme: item.value as ColorTheme })
+    else if (item.type === 'animation') updateSettings({ animatedPieces: true })
     else updateSettings({ background: item.value as BackgroundId })
   }
 
@@ -163,6 +171,7 @@ export default function ShopPage() {
     { type: 'background', title: 'Backgrounds' },
     { type: 'colorTheme', title: 'Board Themes' },
     { type: 'pieceSet', title: 'Piece Sets' },
+    { type: 'animation', title: 'Animations' },
   ]
 
   return (
@@ -206,7 +215,8 @@ export default function ShopPage() {
               const active =
                 (item.type === 'pieceSet' && settings.pieceSet === item.value) ||
                 (item.type === 'colorTheme' && settings.colorTheme === item.value) ||
-                (item.type === 'background' && settings.background === item.value)
+                (item.type === 'background' && settings.background === item.value) ||
+                (item.type === 'animation' && settings.animatedPieces)
               return (
                 <ItemCard
                   key={item.id}

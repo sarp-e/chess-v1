@@ -1,10 +1,15 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react'
 import { Chessboard, defaultPieces } from 'react-chessboard'
 import { Chess } from 'chess.js'
-import type { Square } from 'chess.js'
+import type { Square, Move } from 'chess.js'
 import type { SquareHandlerArgs, PieceDropHandlerArgs, PieceHandlerArgs, PieceRenderObject } from 'react-chessboard'
 import type { Settings } from '../../types'
 import { useSettings } from '../../context/SettingsContext'
+import { useWallet } from '../../context/WalletContext'
+import { ANIMATED_PIECES_ITEM_ID } from '../../data/shop'
+import AnimationOverlay from './animation/AnimationOverlay'
+import { detectMove, maskedSquares, positionWithout } from './animation/engine'
+import { usePrefersReducedMotion } from './animation/usePrefersReducedMotion'
 import { modernPieces } from './pieceSets/modernPieces'
 import { outlinedPieces } from './pieceSets/outlinedPieces'
 import { sculptedPieces } from './pieceSets/sculptedPieces'
@@ -76,10 +81,28 @@ export default function ChessBoard({
   hintSquare,
 }: ChessBoardProps) {
   const { settings } = useSettings()
+  const { isUnlocked } = useWallet()
+  const reducedMotion = usePrefersReducedMotion()
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null)
   const [legalMoveSquares, setLegalMoveSquares] = useState<Record<string, React.CSSProperties>>({})
   const [premoveQueue, setPremoveQueue] = useState<QueuedMove[]>([])
   const canPremove = settings.allowPremove && !!playerColor
+
+  // Animated Pieces bundle: the game state (fen) is always applied immediately;
+  // when the new fen is exactly one legal move after the previous one, an
+  // overlay plays the choreography while the real board hides the squares the
+  // overlay is drawing. Any newer fen replaces (and so cancels) the running show.
+  const animate = settings.animatedPieces && isUnlocked(ANIMATED_PIECES_ITEM_ID) && !reducedMotion
+  const [seenFen, setSeenFen] = useState(fen)
+  const [anim, setAnim] = useState<{ key: string; move: Move } | null>(null)
+  if (fen !== seenFen) {
+    setSeenFen(fen)
+    const move = animate ? detectMove(seenFen, fen) : null
+    setAnim(move ? { key: `${seenFen}>${fen}`, move } : null)
+  }
+  const playing = animate ? anim : null
+  const finishAnim = useCallback(() => setAnim(null), [])
+  const pieces = settings.pieceSet === 'cburnett' ? defaultPieces : (PIECE_SETS[settings.pieceSet] ?? defaultPieces)
 
   // Fire the next queued premove once it becomes the player's turn again. `lastMove`
   // is null right after a fresh game starts, which distinguishes "opponent replied"
@@ -250,9 +273,10 @@ export default function ChessBoard({
 
   return (
     <div className="w-full max-w-[min(80vh,100%)] mx-auto">
+      <div className="relative">
       <Chessboard
         options={{
-          position: fen,
+          position: playing ? positionWithout(fen, maskedSquares(playing.move)) : fen,
           onPieceDrop,
           onPieceDrag,
           onSquareClick,
@@ -260,11 +284,23 @@ export default function ChessBoard({
           allowDragging: !disabled || canPremove,
           lightSquareStyle: { backgroundColor: 'var(--board-light)' },
           darkSquareStyle: { backgroundColor: 'var(--board-dark)' },
-          pieces: settings.pieceSet === 'cburnett' ? defaultPieces : (PIECE_SETS[settings.pieceSet] ?? defaultPieces),
+          pieces,
           squareStyles,
           animationDurationInMs: 150,
+          showAnimations: !animate,
         }}
       />
+      {playing && (
+        <AnimationOverlay
+          key={playing.key}
+          move={playing.move}
+          orientation={orientation}
+          pieces={pieces}
+          costumes={settings.pieceSet === 'cburnett'}
+          onDone={finishAnim}
+        />
+      )}
+      </div>
     </div>
   )
 }
