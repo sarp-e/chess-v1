@@ -26,8 +26,8 @@ export default function OnlineGamePage() {
 
   const {
     fen, moves, status, result, myColor, isMyTurn, lastMove,
-    drawOfferPending, incomingDrawOffer, rematchGameId,
-    makeMove, resign, offerDraw, acceptDraw, declineDraw, requestRematch,
+    drawOfferPending, incomingDrawOffer, rematchGameId, rematchOfferPending, incomingRematchOffer,
+    makeMove, resign, offerDraw, acceptDraw, declineDraw, offerRematch, acceptRematch, declineRematch,
   } = useOnlineGame(gameId ?? '', user!.id)
 
   useEffect(() => {
@@ -205,14 +205,36 @@ export default function OnlineGamePage() {
           )
         )}
 
+        {/* Incoming rematch offer */}
+        {status === 'finished' && incomingRematchOffer && (
+          <div className="bg-[var(--panel-alt)] rounded-xl p-4 space-y-3">
+            <p className="text-[var(--text-primary)] text-sm text-center font-medium">Opponent wants a rematch</p>
+            <div className="flex gap-2">
+              <button
+                onClick={acceptRematch}
+                className="flex-1 py-2 bg-[var(--success)] hover:opacity-90 text-white text-sm rounded-lg transition-colors"
+              >
+                Accept
+              </button>
+              <button
+                onClick={declineRematch}
+                className="flex-1 py-2 bg-[var(--panel-alt)] hover:bg-[var(--border)] text-[var(--text-secondary)] text-sm rounded-lg transition-colors"
+              >
+                Decline
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Post-game actions */}
         {status === 'finished' && (
           <div className="flex flex-col gap-2">
             <button
-              onClick={requestRematch}
-              className="w-full py-2.5 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white font-medium rounded-lg transition-colors"
+              onClick={offerRematch}
+              disabled={rematchOfferPending}
+              className="w-full py-2.5 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Rematch
+              {rematchOfferPending ? 'Rematch offered…' : 'Rematch'}
             </button>
             <button
               onClick={() => navigate('/review', { state: { uciMoves: moves, playerColor: myColor ?? 'white' } })}
