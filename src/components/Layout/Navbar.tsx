@@ -23,7 +23,7 @@ export default function Navbar() {
   const { settings, updateSettings } = useSettings()
   const { user, signOut } = useAuth()
   const { username, setUsername } = useProfile()
-  const { tokens, isUnlocked } = useWallet()
+  const { tokensLabel, isUnlocked } = useWallet()
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [usernameOpen, setUsernameOpen] = useState(false)
   const [usernameInput, setUsernameInput] = useState('')
@@ -107,7 +107,7 @@ export default function Navbar() {
               className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-xs font-medium transition-colors"
               title="Tokens — win games to earn more, spend them in the Shop"
             >
-              🪙 {tokens}
+              🪙 {tokensLabel}
             </Link>
             <button
               onClick={openUsernameEditor}

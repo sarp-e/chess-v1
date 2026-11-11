@@ -101,7 +101,7 @@ function ItemCard({
 }
 
 export default function ShopPage() {
-  const { tokens, isUnlocked, unlockItem, chargeCustomBackground } = useWallet()
+  const { tokens, tokensLabel, isUnlocked, unlockItem, chargeCustomBackground } = useWallet()
   const { user } = useAuth()
   const { settings, updateSettings } = useSettings()
   const [message, setMessage] = useState<string | null>(null)
@@ -179,7 +179,7 @@ export default function ShopPage() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-[var(--text-primary)] text-xl font-bold">Shop</h1>
         {signedIn ? (
-          <span className="text-[var(--text-secondary)] text-sm font-medium">🪙 {tokens} tokens</span>
+          <span className="text-[var(--text-secondary)] text-sm font-medium">🪙 {tokensLabel} tokens</span>
         ) : (
           <Link to="/login" className="text-[var(--accent)] text-sm font-medium">
             Sign in to earn &amp; spend →
