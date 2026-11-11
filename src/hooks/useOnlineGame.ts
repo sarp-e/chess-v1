@@ -17,12 +17,16 @@ export interface OnlineGameState {
   incomingDrawOffer: boolean
   rematchGameId: string | null
   code: string | null
+  rematchOfferPending: boolean
+  incomingRematchOffer: boolean
   makeMove: (from: string, to: string) => Promise<boolean>
   resign: () => Promise<void>
   offerDraw: () => void
   acceptDraw: () => Promise<void>
   declineDraw: () => void
-  requestRematch: () => Promise<void>
+  offerRematch: () => void
+  acceptRematch: () => Promise<void>
+  declineRematch: () => void
 }
 
 export function useOnlineGame(gameId: string, userId: string): OnlineGameState {
@@ -31,6 +35,8 @@ export function useOnlineGame(gameId: string, userId: string): OnlineGameState {
   const [drawOfferPending, setDrawOfferPending] = useState(false)
   const [incomingDrawOffer, setIncomingDrawOffer] = useState(false)
   const [rematchGameId, setRematchGameId] = useState<string | null>(null)
+  const [rematchOfferPending, setRematchOfferPending] = useState(false)
+  const [incomingRematchOffer, setIncomingRematchOffer] = useState(false)
   const gameRef = useRef<GameRow | null>(null)
   gameRef.current = game
 
@@ -111,8 +117,14 @@ export function useOnlineGame(gameId: string, userId: string): OnlineGameState {
       .on('broadcast', { event: 'draw_declined' }, () => {
         setDrawOfferPending(false)
       })
-      .on('broadcast', { event: 'rematch_offer' }, ({ payload }) => {
+      .on('broadcast', { event: 'rematch_offer' }, () => {
+        setIncomingRematchOffer(true)
+      })
+      .on('broadcast', { event: 'rematch_accepted' }, ({ payload }) => {
         if (payload?.gameId) setRematchGameId(payload.gameId)
+      })
+      .on('broadcast', { event: 'rematch_declined' }, () => {
+        setRematchOfferPending(false)
       })
       .subscribe()
 
@@ -193,7 +205,14 @@ export function useOnlineGame(gameId: string, userId: string): OnlineGameState {
     setIncomingDrawOffer(false)
   }, [])
 
-  const requestRematch = useCallback(async () => {
+  const offerRematch = useCallback(() => {
+    const current = gameRef.current
+    if (!current) return
+    supabase.channel(`game-moves:${current.id}`).send({ type: 'broadcast', event: 'rematch_offer', payload: {} })
+    setRematchOfferPending(true)
+  }, [])
+
+  const acceptRematch = useCallback(async () => {
     const current = gameRef.current
     if (!current) return
     const { data, error } = await supabase
@@ -206,8 +225,16 @@ export function useOnlineGame(gameId: string, userId: string): OnlineGameState {
       .select('id')
       .single()
     if (error || !data) return
-    supabase.channel(`game-moves:${current.id}`).send({ type: 'broadcast', event: 'rematch_offer', payload: { gameId: data.id } })
+    supabase.channel(`game-moves:${current.id}`).send({ type: 'broadcast', event: 'rematch_accepted', payload: { gameId: data.id } })
     setRematchGameId(data.id)
+    setIncomingRematchOffer(false)
+  }, [])
+
+  const declineRematch = useCallback(() => {
+    const current = gameRef.current
+    if (!current) return
+    supabase.channel(`game-moves:${current.id}`).send({ type: 'broadcast', event: 'rematch_declined', payload: {} })
+    setIncomingRematchOffer(false)
   }, [])
 
   return {
@@ -222,11 +249,15 @@ export function useOnlineGame(gameId: string, userId: string): OnlineGameState {
     incomingDrawOffer,
     rematchGameId,
     code: game?.code ?? null,
+    rematchOfferPending,
+    incomingRematchOffer,
     makeMove,
     resign,
     offerDraw,
     acceptDraw,
     declineDraw,
-    requestRematch,
+    offerRematch,
+    acceptRematch,
+    declineRematch,
   }
 }
