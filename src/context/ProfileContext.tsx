@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from './AuthContext'
+import { DEMO_MODE, DEMO_USERNAME } from '../lib/demo'
 
 interface ProfileContextValue {
   username: string | null
@@ -12,10 +13,11 @@ const ProfileContext = createContext<ProfileContextValue | null>(null)
 
 export function ProfileProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth()
-  const [username, setUsernameState] = useState<string | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [username, setUsernameState] = useState<string | null>(DEMO_MODE ? DEMO_USERNAME : null)
+  const [loading, setLoading] = useState(!DEMO_MODE)
 
   useEffect(() => {
+    if (DEMO_MODE) return
     if (!user) {
       setUsernameState(null)
       setLoading(false)
@@ -34,6 +36,10 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
   }, [user])
 
   const setUsername = useCallback(async (newUsername: string) => {
+    if (DEMO_MODE) {
+      setUsernameState(newUsername)
+      return { error: null }
+    }
     if (!user) return { error: 'Not signed in' }
     const { error } = await supabase.from('profiles').upsert({ id: user.id, username: newUsername })
     if (error) {

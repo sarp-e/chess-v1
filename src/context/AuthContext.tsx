@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
+import { DEMO_MODE, DEMO_USER } from '../lib/demo'
 
 interface AuthContextValue {
   user: User | null
@@ -13,10 +14,12 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [user, setUser] = useState<User | null>(DEMO_MODE ? DEMO_USER : null)
+  const [loading, setLoading] = useState(!DEMO_MODE)
 
   useEffect(() => {
+    if (DEMO_MODE) return
+
     supabase.auth.getSession().then(({ data }) => {
       setUser(data.session?.user ?? null)
       setLoading(false)
@@ -31,6 +34,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const signUp: AuthContextValue['signUp'] = async (email, password) => {
+    if (DEMO_MODE) return { error: null, needsEmailConfirm: false }
     const { data, error } = await supabase.auth.signUp({ email, password })
     if (error) return { error: error.message, needsEmailConfirm: false }
     // If email confirmation is required, Supabase returns a user but no session.
@@ -38,11 +42,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signIn: AuthContextValue['signIn'] = async (email, password) => {
+    if (DEMO_MODE) return { error: null }
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     return { error: error?.message ?? null }
   }
 
   const signOut = async () => {
+    if (DEMO_MODE) return
     await supabase.auth.signOut()
   }
 

@@ -1,9 +1,11 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from './AuthContext'
+import { DEMO_MODE, demoLoadUnlocked, demoUnlock } from '../lib/demo'
 
 interface WalletContextValue {
   tokens: number
+  tokensLabel: string
   unlocked: Set<string>
   loading: boolean
   isUnlocked: (itemId: string) => boolean
@@ -18,10 +20,15 @@ const WalletContext = createContext<WalletContextValue | null>(null)
 export function WalletProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth()
   const [tokens, setTokens] = useState(0)
-  const [unlocked, setUnlocked] = useState<Set<string>>(new Set())
-  const [loading, setLoading] = useState(true)
+  const [unlocked, setUnlocked] = useState<Set<string>>(DEMO_MODE ? demoLoadUnlocked() : new Set())
+  const [loading, setLoading] = useState(!DEMO_MODE)
 
   const refresh = useCallback(async () => {
+    if (DEMO_MODE) {
+      setUnlocked(demoLoadUnlocked())
+      setLoading(false)
+      return
+    }
     if (!user) {
       setTokens(0)
       setUnlocked(new Set())
@@ -41,7 +48,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => { refresh() }, [refresh])
 
   const awardBotWin = useCallback(async (botElo: number): Promise<number> => {
-    if (!user) return 0
+    if (DEMO_MODE || !user) return 0
     const { data, error } = await supabase.rpc('award_bot_win', { p_bot_elo: botElo })
     if (error) return 0
     await refresh()
@@ -49,7 +56,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
   }, [user, refresh])
 
   const awardOnlineWin = useCallback(async (gameId: string): Promise<number> => {
-    if (!user) return 0
+    if (DEMO_MODE || !user) return 0
     const { data, error } = await supabase.rpc('award_online_win', { p_game_id: gameId })
     if (error) return 0
     await refresh()
@@ -57,6 +64,11 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
   }, [user, refresh])
 
   const unlockItem = useCallback(async (itemId: string): Promise<boolean> => {
+    if (DEMO_MODE) {
+      demoUnlock(itemId)
+      await refresh()
+      return true
+    }
     if (!user) return false
     const { data, error } = await supabase.rpc('unlock_cosmetic', { p_item_id: itemId })
     if (error) return false
@@ -65,6 +77,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
   }, [user, refresh])
 
   const chargeCustomBackground = useCallback(async (): Promise<boolean> => {
+    if (DEMO_MODE) return true
     if (!user) return false
     const { data, error } = await supabase.rpc('charge_custom_background_upload')
     if (error) return false
@@ -75,7 +88,19 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
   const isUnlocked = useCallback((itemId: string) => unlocked.has(itemId), [unlocked])
 
   return (
-    <WalletContext.Provider value={{ tokens, unlocked, loading, isUnlocked, awardBotWin, awardOnlineWin, unlockItem, chargeCustomBackground }}>
+    <WalletContext.Provider
+      value={{
+        tokens: DEMO_MODE ? Infinity : tokens,
+        tokensLabel: DEMO_MODE ? '∞' : String(tokens),
+        unlocked,
+        loading,
+        isUnlocked,
+        awardBotWin,
+        awardOnlineWin,
+        unlockItem,
+        chargeCustomBackground,
+      }}
+    >
       {children}
     </WalletContext.Provider>
   )

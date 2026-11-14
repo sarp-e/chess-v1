@@ -4,7 +4,7 @@ import { useSettings } from '../../context/SettingsContext'
 import { useAuth } from '../../context/AuthContext'
 import { useProfile } from '../../context/ProfileContext'
 import { useWallet } from '../../context/WalletContext'
-import { isFreeItem, shopItemFor, shopItemsOfType } from '../../data/shop'
+import { ANIMATED_PIECES_ITEM_ID, isFreeItem, shopItemFor, shopItemsOfType } from '../../data/shop'
 import type { BackgroundId, ColorTheme } from '../../types'
 
 const USERNAME_PATTERN = /^[A-Za-z0-9_]+( [A-Za-z0-9_]+)*$/
@@ -23,7 +23,7 @@ export default function Navbar() {
   const { settings, updateSettings } = useSettings()
   const { user, signOut } = useAuth()
   const { username, setUsername } = useProfile()
-  const { tokens, isUnlocked } = useWallet()
+  const { tokensLabel, isUnlocked } = useWallet()
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [usernameOpen, setUsernameOpen] = useState(false)
   const [usernameInput, setUsernameInput] = useState('')
@@ -107,7 +107,7 @@ export default function Navbar() {
               className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-xs font-medium transition-colors"
               title="Tokens — win games to earn more, spend them in the Shop"
             >
-              🪙 {tokens}
+              🪙 {tokensLabel}
             </Link>
             <button
               onClick={openUsernameEditor}
@@ -282,6 +282,33 @@ export default function Navbar() {
                         }`}
                       />
                     </button>
+                  </div>
+
+                  {/* Animated Pieces bundle — toggle once owned; locked sends you to the Shop */}
+                  <div className="flex items-center justify-between">
+                    <label className="text-[var(--text-muted)] text-xs">Animated Pieces</label>
+                    {isUnlocked(ANIMATED_PIECES_ITEM_ID) ? (
+                      <button
+                        onClick={() => updateSettings({ animatedPieces: !settings.animatedPieces })}
+                        className={`w-10 h-5 rounded-full transition-colors relative ${
+                          settings.animatedPieces ? 'bg-[var(--accent)]' : 'bg-[var(--panel-alt)]'
+                        }`}
+                      >
+                        <span
+                          className={`absolute left-0 top-0.5 w-4 h-4 bg-white rounded-full transition-transform ${
+                            settings.animatedPieces ? 'translate-x-5' : 'translate-x-0.5'
+                          }`}
+                        />
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => { setSettingsOpen(false); navigate('/shop') }}
+                        title={`Animated Pieces — ${shopItemFor('animation', 'pieces')?.price} 🪙`}
+                        className="px-2 py-0.5 text-xs rounded bg-[var(--panel-alt)] text-[var(--text-secondary)] hover:bg-[var(--border)] transition-colors"
+                      >
+                        🔒{shopItemFor('animation', 'pieces')?.price}
+                      </button>
+                    )}
                   </div>
 
                   {/* Allow premoves */}

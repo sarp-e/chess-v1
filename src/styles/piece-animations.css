@@ -1,0 +1,31 @@
+/* Animated Pieces bundle — shop preview. Board choreography itself runs via
+   the Web Animations API (src/components/Board/animation). */
+.shop-anim-preview {
+  display: inline-block;
+  animation: pa-shop-hop 1.6s ease-in-out infinite;
+}
+
+@keyframes pa-shop-hop {
+  0%, 30% { transform: translate(-0.6em, 0) scale(1, 1); }
+  38% { transform: translate(-0.6em, 0) scale(1.15, 0.85); }
+  60% { transform: translate(0, -0.6em) scale(1.15) rotate(-10deg); }
+  80% { transform: translate(0.6em, 0) scale(1.15, 0.85); }
+  90%, 100% { transform: translate(0.6em, 0) scale(1, 1); }
+}
+
+/* Costume idle motion (cburnett only, while a piece is on the move). */
+.pa-leg, .pa-gown, .pa-crown, .pa-sparkle { transform-box: view-box; }
+.pa-leg { animation: pa-leg 0.16s ease-in-out infinite alternate; }
+.pa-leg-b { animation-delay: -0.16s; }
+.pa-gown { animation: pa-gown 0.55s ease-in-out infinite alternate; }
+.pa-crown { animation: pa-crown 0.32s ease-in-out infinite alternate; }
+.pa-sparkle { transform-origin: 30px -4px; animation: pa-sparkle 0.6s ease-in-out infinite alternate; }
+
+@keyframes pa-leg { from { transform: rotate(-30deg); } to { transform: rotate(30deg); } }
+@keyframes pa-gown { from { transform: skewX(-6deg); } to { transform: skewX(6deg); } }
+@keyframes pa-crown { from { transform: translateY(0) rotate(-5deg); } to { transform: translateY(-1.8px) rotate(5deg); } }
+@keyframes pa-sparkle { from { transform: scale(0.3); opacity: 0.2; } to { transform: scale(1.2); opacity: 1; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .shop-anim-preview { animation: none; }
+}

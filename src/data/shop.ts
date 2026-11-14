@@ -1,6 +1,6 @@
 import type { ColorTheme } from '../types'
 
-export type CosmeticType = 'pieceSet' | 'colorTheme' | 'background'
+export type CosmeticType = 'pieceSet' | 'colorTheme' | 'background' | 'animation'
 
 export interface ShopItem {
   id: string // matches item_id in the DB — keep in sync with unlock_cosmetic() in supabase/migrations
@@ -34,11 +34,16 @@ export const SHOP_ITEMS: ShopItem[] = [
   { id: 'background:photo-aurora', type: 'background', value: 'photo-aurora', price: 40, label: 'Aurora', blurb: 'Green and violet light over deep blue.' },
   { id: 'background:photo-dusk', type: 'background', value: 'photo-dusk', price: 40, label: 'Dusk', blurb: 'Warm sunset haze on plum.' },
   { id: 'background:photo-lagoon', type: 'background', value: 'photo-lagoon', price: 40, label: 'Lagoon', blurb: 'Cyan and sand over teal water.' },
+
+  { id: 'animation:pieces', type: 'animation', value: 'pieces', price: 60, label: 'Animated Pieces', blurb: 'Knights hop, rooks run, queens punch — every move gets a little show. Pawns wear helmets.' },
 ]
+
+export const ANIMATED_PIECES_ITEM_ID = 'animation:pieces'
 
 export function isFreeItem(type: CosmeticType, value: string): boolean {
   if (type === 'pieceSet') return value === 'cburnett'
   if (type === 'background') return value === 'none'
+  if (type === 'animation') return false
   return (value as ColorTheme) === 'walnut'
 }
 

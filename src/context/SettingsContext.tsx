@@ -8,6 +8,7 @@ const DEFAULT_SETTINGS: Settings = {
   pieceSet: 'cburnett',
   allowPremove: false,
   background: 'none',
+  animatedPieces: false,
 }
 
 type SettingsAction = { type: 'UPDATE'; payload: Partial<Settings> }
