@@ -44,7 +44,7 @@ export default function Navbar() {
       navigate('/shop')
       return
     }
-    if (type === 'pieceSet') updateSettings({ pieceSet: value as typeof settings.pieceSet })
+    if (type === 'pieceSet') updateSettings({ pieceSet: value as typeof settings.pieceSet, ...(value !== 'cburnett' && { animatedPieces: false }) })
     else if (type === 'colorTheme') updateSettings({ colorTheme: value as ColorTheme })
     else updateSettings({ background: value as BackgroundId })
   }
@@ -289,7 +289,7 @@ export default function Navbar() {
                     <label className="text-[var(--text-muted)] text-xs">Animated Pieces</label>
                     {isUnlocked(ANIMATED_PIECES_ITEM_ID) ? (
                       <button
-                        onClick={() => updateSettings({ animatedPieces: !settings.animatedPieces })}
+                        onClick={() => updateSettings(settings.animatedPieces ? { animatedPieces: false } : { animatedPieces: true, pieceSet: 'cburnett' })}
                         className={`w-10 h-5 rounded-full transition-colors relative ${
                           settings.animatedPieces ? 'bg-[var(--accent)]' : 'bg-[var(--panel-alt)]'
                         }`}
