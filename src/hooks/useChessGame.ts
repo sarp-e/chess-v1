@@ -8,6 +8,14 @@ export interface CapturedPieces {
   b: string[]
 }
 
+// Copy via PGN, not FEN: a FEN-loaded Chess has no history, which the move
+// list, captured pieces, undo, review and repetition detection all rely on.
+function copyGame(g: Chess): Chess {
+  const copy = new Chess()
+  copy.loadPgn(g.pgn())
+  return copy
+}
+
 export function useChessGame() {
   const [game, setGame] = useState(new Chess())
   const [status, setStatus] = useState<GameStatus>('idle')
@@ -18,7 +26,7 @@ export function useChessGame() {
   gameRef.current = game
 
   const updateGameState = useCallback((newGame: Chess) => {
-    setGame(new Chess(newGame.fen()))
+    setGame(newGame)
     setMoveHistory(newGame.history())
 
     // Calculate captured pieces
@@ -50,7 +58,7 @@ export function useChessGame() {
   }, [])
 
   const makeMove = useCallback((from: string, to: string, promotion = 'q'): boolean => {
-    const newGame = new Chess(gameRef.current.fen())
+    const newGame = copyGame(gameRef.current)
     try {
       const result = newGame.move({ from, to, promotion })
       if (!result) return false
@@ -78,7 +86,7 @@ export function useChessGame() {
   }, [])
 
   const undoMove = useCallback(() => {
-    const newG = new Chess(gameRef.current.fen())
+    const newG = copyGame(gameRef.current)
     newG.undo()
     newG.undo()
     updateGameState(newG)

@@ -56,7 +56,8 @@ export function useGameReview(uciMoves: string[]): GameReviewState {
     for (const uci of uciMoves) {
       const from = uci.slice(0, 2)
       const to = uci.slice(2, 4)
-      const promotion = uci.length > 4 ? uci[4] : undefined
+      // Online games store promotions without the piece (always a queen).
+      const promotion = uci.length > 4 ? uci[4] : 'q'
       try {
         const move = chess.move({ from, to, promotion })
         if (!move) break
@@ -88,7 +89,9 @@ export function useGameReview(uciMoves: string[]): GameReviewState {
       if (score !== null) currentScore = score
 
       if (line.startsWith('bestmove')) {
-        const captured = currentScore
+        // Stockfish scores from the side to move; store everything from White's view.
+        const blackToMove = fens[pendingIdx].split(' ')[1] === 'b'
+        const captured = currentScore !== null && blackToMove ? -currentScore : currentScore
         setEvals(prev => {
           const next = [...prev]
           next[pendingIdx] = captured

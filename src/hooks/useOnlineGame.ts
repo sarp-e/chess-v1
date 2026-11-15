@@ -70,21 +70,30 @@ export function useOnlineGame(gameId: string, userId: string): OnlineGameState {
       .eq('id', gameId)
       .single()
       .then(async ({ data, error }) => {
-        if (cancelled || error || !data) { setStatus('error'); return }
+        if (cancelled) return
+        if (error || !data) { setStatus('error'); return }
         const g = data as GameRow
 
         if (g.status === 'waiting' && g.white_id !== userId && !g.black_id) {
-          const { error: joinError } = await supabase
+          // Guarded so a second joiner racing for the same seat updates 0 rows
+          // (no error from PostgREST) instead of believing they're black.
+          const { data: joined, error: joinError } = await supabase
             .from('games')
             .update({ black_id: userId, status: 'active' })
             .eq('id', gameId)
+            .eq('status', 'waiting')
+            .is('black_id', null)
+            .select('id')
+            .maybeSingle()
           if (cancelled) return
-          if (joinError) { setStatus('error'); return }
+          if (joinError || !joined) { setStatus('error'); return }
           applyGame({ ...g, black_id: userId, status: 'active' })
         } else {
           applyGame(g)
         }
       })
+
+    return () => { cancelled = true }
   }, [gameId, userId, applyGame])
 
   // Poll every 2 s while waiting for opponent
@@ -98,6 +107,26 @@ export function useOnlineGame(gameId: string, userId: string): OnlineGameState {
 
     return () => clearInterval(interval)
   }, [status, gameId, applyGame])
+
+  // Colors swap in a rematch, and the "create game" RLS policy only lets the
+  // new white (the old black) insert the row — so the old black always creates it.
+  const createRematch = useCallback(async () => {
+    const current = gameRef.current
+    if (!current) return
+    const { data, error } = await supabase
+      .from('games')
+      .insert({
+        white_id: current.black_id ?? current.white_id,
+        black_id: current.white_id,
+        status: current.black_id ? 'active' : 'waiting',
+      })
+      .select('id')
+      .single()
+    if (error || !data) return
+    supabase.channel(`game-moves:${current.id}`).send({ type: 'broadcast', event: 'rematch_accepted', payload: { gameId: data.id } })
+    setRematchGameId(data.id)
+    setIncomingRematchOffer(false)
+  }, [])
 
   // Broadcast channel
   useEffect(() => {
@@ -122,6 +151,7 @@ export function useOnlineGame(gameId: string, userId: string): OnlineGameState {
       })
       .on('broadcast', { event: 'rematch_accepted' }, ({ payload }) => {
         if (payload?.gameId) setRematchGameId(payload.gameId)
+        else createRematch()
       })
       .on('broadcast', { event: 'rematch_declined' }, () => {
         setRematchOfferPending(false)
@@ -129,7 +159,7 @@ export function useOnlineGame(gameId: string, userId: string): OnlineGameState {
       .subscribe()
 
     return () => { supabase.removeChannel(channel) }
-  }, [gameId, userId, applyGame])
+  }, [gameId, userId, applyGame, createRematch])
 
   const makeMove = useCallback(async (from: string, to: string): Promise<boolean> => {
     const current = gameRef.current
@@ -215,20 +245,14 @@ export function useOnlineGame(gameId: string, userId: string): OnlineGameState {
   const acceptRematch = useCallback(async () => {
     const current = gameRef.current
     if (!current) return
-    const { data, error } = await supabase
-      .from('games')
-      .insert({
-        white_id: current.black_id ?? current.white_id,
-        black_id: current.white_id,
-        status: current.black_id ? 'active' : 'waiting',
-      })
-      .select('id')
-      .single()
-    if (error || !data) return
-    supabase.channel(`game-moves:${current.id}`).send({ type: 'broadcast', event: 'rematch_accepted', payload: { gameId: data.id } })
-    setRematchGameId(data.id)
-    setIncomingRematchOffer(false)
-  }, [])
+    if (current.black_id === userId) {
+      await createRematch()
+    } else {
+      // We were white: ask the offerer (old black) to create the game.
+      supabase.channel(`game-moves:${current.id}`).send({ type: 'broadcast', event: 'rematch_accepted', payload: {} })
+      setIncomingRematchOffer(false)
+    }
+  }, [userId, createRematch])
 
   const declineRematch = useCallback(() => {
     const current = gameRef.current

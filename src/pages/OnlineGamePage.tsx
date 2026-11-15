@@ -14,8 +14,15 @@ function StatusBanner({ label, sub }: { label: string; sub?: string }) {
   )
 }
 
+// A rematch navigates to a new gameId on this same route. Keying by gameId
+// remounts the game, so no state (draw/rematch offers, award flag, the old
+// game's finished status) carries over from the previous game.
 export default function OnlineGamePage() {
   const { gameId } = useParams<{ gameId: string }>()
+  return <OnlineGame key={gameId} gameId={gameId} />
+}
+
+function OnlineGame({ gameId }: { gameId: string | undefined }) {
   const navigate = useNavigate()
   const { user } = useAuth()
   const { awardOnlineWin } = useWallet()
@@ -34,13 +41,6 @@ export default function OnlineGamePage() {
   useEffect(() => {
     if (rematchGameId) navigate(`/play/online/${rematchGameId}`)
   }, [rematchGameId, navigate])
-
-  // A rematch reuses this same page component with a new gameId param —
-  // reset per-game award state so the new game's win can still be claimed.
-  useEffect(() => {
-    awardedRef.current = false
-    setTokensEarned(null)
-  }, [gameId])
 
   useEffect(() => {
     if (status === 'finished' && result === myColor && gameId && !awardedRef.current) {
