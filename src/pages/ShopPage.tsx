@@ -132,9 +132,9 @@ export default function ShopPage() {
   }
 
   const equip = (item: ShopItem) => {
-    if (item.type === 'pieceSet') updateSettings({ pieceSet: item.value as Settings['pieceSet'] })
+    if (item.type === 'pieceSet') updateSettings({ pieceSet: item.value as Settings['pieceSet'], ...(item.value !== 'cburnett' && { animatedPieces: false }) })
     else if (item.type === 'colorTheme') updateSettings({ colorTheme: item.value as ColorTheme })
-    else if (item.type === 'animation') updateSettings({ animatedPieces: true })
+    else if (item.type === 'animation') updateSettings({ animatedPieces: true, pieceSet: 'cburnett' })
     else updateSettings({ background: item.value as BackgroundId })
   }
 
