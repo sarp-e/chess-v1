@@ -237,7 +237,7 @@ export default function PlayPage() {
               onUndo={handleUndo}
               onResign={resign}
               onFlip={() => setOrientation(o => o === 'white' ? 'black' : 'white')}
-              canUndo={moveHistory.length >= 2}
+              canUndo={moveHistory.length >= 2 && status === 'playing'}
               assistLevel={assistLevel}
               hintState={hintLoading ? 'loading' : hintMove ? 'ready' : 'none'}
               onShowHint={handleShowHint}
