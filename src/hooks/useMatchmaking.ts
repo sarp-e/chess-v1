@@ -37,13 +37,14 @@ export function useMatchmaking(userId: string): MatchmakingState {
       .single()
 
     if (waiting) {
-      // Create a game — we're white, opponent is black (randomise later)
-      const isWhite = Math.random() > 0.5
+      // Create a game — we're white, opponent is black. The "create game" RLS
+      // policy requires the inserter to be white_id, and the waiting player's
+      // subscription below only listens for games where they are black_id.
       const { data: newGame, error } = await supabase
         .from('games')
         .insert({
-          white_id: isWhite ? userId : waiting.user_id,
-          black_id: isWhite ? waiting.user_id : userId,
+          white_id: userId,
+          black_id: waiting.user_id,
           status: 'active',
         })
         .select('id')
@@ -84,7 +85,7 @@ export function useMatchmaking(userId: string): MatchmakingState {
         (payload) => {
           setGameId(payload.new.id)
           setStatus('matched')
-          supabase.from('matchmaking_queue').delete().eq('user_id', userId)
+          supabase.from('matchmaking_queue').delete().eq('user_id', userId).then()
         }
       )
       .subscribe()
@@ -92,12 +93,16 @@ export function useMatchmaking(userId: string): MatchmakingState {
     channelRef.current = channel
   }, [userId])
 
-  // Clean up on unmount
+  // Clean up on unmount — including our queue row, or a later searcher gets
+  // paired with us after we've left the lobby.
   useEffect(() => {
     return () => {
-      if (channelRef.current) supabase.removeChannel(channelRef.current)
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current)
+        supabase.from('matchmaking_queue').delete().eq('user_id', userId).then()
+      }
     }
-  }, [])
+  }, [userId])
 
   return { status, gameId, joinQueue, leaveQueue }
 }
