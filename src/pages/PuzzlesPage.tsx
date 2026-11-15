@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { Chess } from 'chess.js'
 import ChessBoard from '../components/Board/ChessBoard'
 import { usePuzzles } from '../hooks/usePuzzles'
@@ -18,8 +18,13 @@ export default function PuzzlesPage() {
   const [hintUsed, setHintUsed] = useState(false)
   const [hintSquare, setHintSquare] = useState<string | null>(null)
   const [feedback, setFeedback] = useState('')
+  // Pending opponent replies / solution playback / incorrect-move resets. Cleared
+  // on reset so they can't write the previous puzzle's position onto the next one.
+  const timersRef = useRef<ReturnType<typeof setTimeout>[]>([])
 
   const resetPuzzle = useCallback(() => {
+    timersRef.current.forEach(clearTimeout)
+    timersRef.current = []
     setFen(currentPuzzle.fen)
     setMoveIndex(0)
     setPuzzleState('idle')
@@ -33,7 +38,7 @@ export default function PuzzlesPage() {
   const playOpponentMove = useCallback((game: Chess, solutionMoveIndex: number) => {
     const oppMove = currentPuzzle.solution[solutionMoveIndex]
     if (!oppMove) return
-    setTimeout(() => {
+    timersRef.current.push(setTimeout(() => {
       const from = oppMove.slice(0, 2)
       const to = oppMove.slice(2, 4)
       const promotion = oppMove.length > 4 ? oppMove[4] : 'q'
@@ -45,7 +50,7 @@ export default function PuzzlesPage() {
       } catch {
         // move may be invalid in seeded data
       }
-    }, 400)
+    }, 400))
   }, [currentPuzzle])
 
   // Shared by a correctly-played move and by "Show Answer" auto-playing the move for you.
@@ -88,10 +93,10 @@ export default function PuzzlesPage() {
     } else {
       setPuzzleState('incorrect')
       setFeedback('Incorrect — try again.')
-      setTimeout(() => {
+      timersRef.current.push(setTimeout(() => {
         setFen(fen)
         setPuzzleState('playing')
-      }, 800)
+      }, 800))
       return false
     }
 
@@ -141,6 +146,7 @@ export default function PuzzlesPage() {
       } catch { clearInterval(interval) }
       i++
     }, 600)
+    timersRef.current.push(interval)
   }, [fen, moveIndex, currentPuzzle, hintUsed, markCompleted])
 
   const stars = '★'.repeat(currentPuzzle.difficulty) + '☆'.repeat(5 - currentPuzzle.difficulty)
@@ -156,7 +162,7 @@ export default function PuzzlesPage() {
           fen={fen}
           onMove={handleMove}
           orientation={currentPuzzle.playerColor === 'w' ? 'white' : 'black'}
-          disabled={puzzleState === 'complete' || puzzleState === 'showing-solution' || puzzleState === 'incorrect'}
+          disabled={puzzleState === 'complete' || puzzleState === 'showing-solution' || puzzleState === 'incorrect' || puzzleState === 'correct'}
           hintSquare={hintSquare}
         />
       </div>
