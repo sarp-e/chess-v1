@@ -151,12 +151,21 @@ export default function ShopPage() {
       return
     }
     setMessage(null)
+    // Save before charging, so a failed save never costs tokens; a failed
+    // charge removes the saved image again.
+    let record: CustomBackground
+    try {
+      record = await addCustomBackground(file)
+    } catch {
+      setMessage("Couldn't save this image on this device — no tokens were charged.")
+      return
+    }
     const charged = await chargeCustomBackground()
     if (!charged) {
+      await deleteCustomBackground(record.id)
       setMessage(`Couldn't charge 40 🪙 for this upload — you have ${tokens} 🪙.`)
       return
     }
-    const record = await addCustomBackground(file)
     await refreshCustoms()
     updateSettings({ background: `custom:${record.id}` })
   }
