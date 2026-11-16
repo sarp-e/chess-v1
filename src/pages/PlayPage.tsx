@@ -9,6 +9,8 @@ import BotSelector from '../components/Play/BotSelector'
 import { useChessGame } from '../hooks/useChessGame'
 import { useStockfish } from '../hooks/useStockfish'
 import { useWallet } from '../context/WalletContext'
+import { botWinReward } from '../lib/tokenEconomy'
+import { DEMO_MODE } from '../lib/demo'
 
 const HINT_DEPTH = 15
 
@@ -38,14 +40,16 @@ export default function PlayPage() {
   const { awardBotWin } = useWallet()
   const [tokensEarned, setTokensEarned] = useState<number | null>(null)
   const awardedRef = useRef(false)
+  // Takebacks + hint requests this game; each burns 1 token from the win reward.
+  const [assists, setAssists] = useState(0)
 
   // Checkmate with the bot to move means the player delivered mate — a win.
   useEffect(() => {
     if (status === 'checkmate' && turn === botTurn && !awardedRef.current) {
       awardedRef.current = true
-      awardBotWin(selectedBot.elo).then(amount => { if (amount > 0) setTokensEarned(amount) })
+      awardBotWin(selectedBot.elo, assists).then(amount => { if (amount > 0) setTokensEarned(amount) })
     }
-  }, [status, turn, botTurn, selectedBot.elo, awardBotWin])
+  }, [status, turn, botTurn, selectedBot.elo, assists, awardBotWin])
 
   const handleBestMove = useCallback((uci: string) => {
     setTimeout(() => {
@@ -80,6 +84,7 @@ export default function PlayPage() {
   })
 
   const handleShowHint = useCallback(() => {
+    setAssists(a => a + 1)
     hintPendingRef.current++
     hintValidRef.current = true
     setHintLoading(true)
@@ -140,10 +145,12 @@ export default function PlayPage() {
     setHintLoading(false)
     setTokensEarned(null)
     awardedRef.current = false
+    setAssists(0)
     newGame()
   }, [pendingBot, pendingAssistLevel, pendingColor, newGame])
 
   const handleUndo = useCallback(() => {
+    setAssists(a => a + 1)
     hintValidRef.current = false
     setHintMove(null)
     setHintLoading(false)
@@ -256,6 +263,7 @@ export default function PlayPage() {
               onShowHint={handleShowHint}
               onShowAnswer={handleShowAnswer}
               canHint={turn === myTurn && status === 'playing'}
+              winReward={DEMO_MODE ? null : botWinReward(selectedBot.elo, assists)}
             />
 
             {isGameOver && (
