@@ -56,6 +56,7 @@ export default function App() {
                   <Route path="/learn" element={<LearnPage />} />
                   <Route path="/review" element={<GameReviewPage />} />
                   <Route path="/shop" element={<ShopPage />} />
+                  <Route path="*" element={<Navigate to="/play" replace />} />
                 </Routes>
               </div>
             </BrowserRouter>

@@ -59,9 +59,17 @@ export default function PlayPage() {
     onBestMove: handleBestMove,
   })
 
+  // A hint search can still be running when the position changes (a move, undo
+  // or new game). Results are only applied for the latest request, and only if
+  // the position hasn't changed since it was made.
+  const hintPendingRef = useRef(0)
+  const hintValidRef = useRef(false)
+
   // Separate engine instance for player hints, so a hint request in flight can
   // never collide with the bot's own move computation.
   const handleHintMove = useCallback((uci: string) => {
+    hintPendingRef.current--
+    if (hintPendingRef.current > 0 || !hintValidRef.current) return
     setHintLoading(false)
     setHintMove(uci)
   }, [])
@@ -72,6 +80,8 @@ export default function PlayPage() {
   })
 
   const handleShowHint = useCallback(() => {
+    hintPendingRef.current++
+    hintValidRef.current = true
     setHintLoading(true)
     findHintMove(fen)
   }, [fen, findHintMove])
@@ -109,6 +119,7 @@ export default function PlayPage() {
     if (turn !== myTurn || status !== 'playing') return false
     const moved = makeMove(from, to)
     if (moved) {
+      hintValidRef.current = false
       setHintMove(null)
       setHintLoading(false)
     }
@@ -124,6 +135,7 @@ export default function PlayPage() {
     setPlayerColor(resolvedColor)
     setOrientation(resolvedColor)
     setShowBotSelect(false)
+    hintValidRef.current = false
     setHintMove(null)
     setHintLoading(false)
     setTokensEarned(null)
@@ -132,6 +144,7 @@ export default function PlayPage() {
   }, [pendingBot, pendingAssistLevel, pendingColor, newGame])
 
   const handleUndo = useCallback(() => {
+    hintValidRef.current = false
     setHintMove(null)
     setHintLoading(false)
     undoMove()
@@ -230,7 +243,7 @@ export default function PlayPage() {
             <GamePanel
               status={status}
               moveHistory={moveHistory}
-              capturedPieces={capturedPieces}
+              capturedPieces={playerColor === 'white' ? capturedPieces : { w: capturedPieces.b, b: capturedPieces.w }}
               selectedBot={selectedBot}
               isGameOver={isGameOver}
               onNewGame={() => setShowBotSelect(true)}

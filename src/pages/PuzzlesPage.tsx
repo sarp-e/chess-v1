@@ -153,6 +153,8 @@ export default function PuzzlesPage() {
   const prog = progress[currentPuzzle.id]
   const isCompleted = prog?.completed
   const isDailyPuzzle = currentIndex === dailyIndex
+  // An incorrect-move reset or opponent reply is pending; acting now would race it.
+  const transient = puzzleState === 'incorrect' || puzzleState === 'correct'
 
   return (
     <div className="flex flex-col lg:flex-row gap-6 p-4 lg:p-6 min-h-[calc(100vh-56px)]">
@@ -209,7 +211,7 @@ export default function PuzzlesPage() {
         {!hintSquare ? (
           <button
             onClick={handleShowHint}
-            disabled={puzzleState === 'complete' || puzzleState === 'showing-solution'}
+            disabled={puzzleState === 'complete' || puzzleState === 'showing-solution' || transient}
             className="w-full py-2 bg-[var(--panel-alt)] hover:bg-[var(--border)] disabled:opacity-40 text-[var(--text-secondary)] text-sm rounded-lg transition-colors"
           >
             Show Hint
@@ -217,7 +219,7 @@ export default function PuzzlesPage() {
         ) : (
           <button
             onClick={handleShowAnswer}
-            disabled={puzzleState === 'complete' || puzzleState === 'showing-solution'}
+            disabled={puzzleState === 'complete' || puzzleState === 'showing-solution' || transient}
             className="w-full py-2 bg-[var(--panel-alt)] hover:bg-[var(--border)] disabled:opacity-40 text-[var(--text-secondary)] text-sm rounded-lg transition-colors"
           >
             Show Answer
@@ -228,7 +230,8 @@ export default function PuzzlesPage() {
         {puzzleState !== 'complete' && puzzleState !== 'showing-solution' && (
           <button
             onClick={showSolution}
-            className="w-full py-2 bg-[var(--panel-alt)] hover:bg-[var(--border)] text-[var(--text-muted)] text-sm rounded-lg transition-colors"
+            disabled={transient}
+            className="w-full py-2 bg-[var(--panel-alt)] hover:bg-[var(--border)] disabled:opacity-40 text-[var(--text-muted)] text-sm rounded-lg transition-colors"
           >
             Show Solution
           </button>
