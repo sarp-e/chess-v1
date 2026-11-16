@@ -21,6 +21,7 @@ interface GamePanelProps {
   onShowHint: () => void
   onShowAnswer: () => void
   canHint: boolean
+  winReward?: number | null
 }
 
 const STATUS_MESSAGES: Record<GameStatus, string> = {
@@ -36,7 +37,7 @@ const STATUS_MESSAGES: Record<GameStatus, string> = {
 export default function GamePanel({
   status, moveHistory, capturedPieces, selectedBot, isGameOver,
   onNewGame, onUndo, onFlip, onResign, canUndo,
-  assistLevel, hintState, onShowHint, onShowAnswer, canHint,
+  assistLevel, hintState, onShowHint, onShowAnswer, canHint, winReward,
 }: GamePanelProps) {
   const assisted = assistLevel === 'assisted'
   const moveListRef = useRef<HTMLDivElement>(null)
@@ -122,6 +123,12 @@ export default function GamePanel({
             {hintState === 'loading' ? 'Thinking…' : 'Show Hint'}
           </button>
         )
+      )}
+
+      {assisted && winReward != null && (
+        <div className="text-center text-xs text-[var(--text-muted)]">
+          Win reward: {winReward} 🪙 tokens (-1 per hint or undo)
+        </div>
       )}
 
       {/* Resign */}

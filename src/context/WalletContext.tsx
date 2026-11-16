@@ -9,7 +9,7 @@ interface WalletContextValue {
   unlocked: Set<string>
   loading: boolean
   isUnlocked: (itemId: string) => boolean
-  awardBotWin: (botElo: number) => Promise<number>
+  awardBotWin: (botElo: number, assists: number) => Promise<number>
   awardOnlineWin: (gameId: string) => Promise<number>
   unlockItem: (itemId: string) => Promise<boolean>
   chargeCustomBackground: () => Promise<boolean>
@@ -47,9 +47,9 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => { refresh() }, [refresh])
 
-  const awardBotWin = useCallback(async (botElo: number): Promise<number> => {
+  const awardBotWin = useCallback(async (botElo: number, assists: number): Promise<number> => {
     if (DEMO_MODE || !user) return 0
-    const { data, error } = await supabase.rpc('award_bot_win', { p_bot_elo: botElo })
+    const { data, error } = await supabase.rpc('award_bot_win', { p_bot_elo: botElo, p_assists: assists })
     if (error) return 0
     await refresh()
     return (data as number) ?? 0
