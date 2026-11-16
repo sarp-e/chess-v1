@@ -5,8 +5,6 @@ import type { Square, Move } from 'chess.js'
 import type { SquareHandlerArgs, PieceDropHandlerArgs, PieceHandlerArgs, PieceRenderObject } from 'react-chessboard'
 import type { Settings } from '../../types'
 import { useSettings } from '../../context/SettingsContext'
-import { useWallet } from '../../context/WalletContext'
-import { ANIMATED_PIECES_ITEM_ID } from '../../data/shop'
 import AnimationOverlay from './animation/AnimationOverlay'
 import { detectMove, maskedSquares, positionWithout } from './animation/engine'
 import { usePrefersReducedMotion } from './animation/usePrefersReducedMotion'
@@ -82,7 +80,6 @@ export default function ChessBoard({
   hintSquare,
 }: ChessBoardProps) {
   const { settings } = useSettings()
-  const { isUnlocked } = useWallet()
   const reducedMotion = usePrefersReducedMotion()
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null)
   const [legalMoveSquares, setLegalMoveSquares] = useState<Record<string, React.CSSProperties>>({})
@@ -93,7 +90,7 @@ export default function ChessBoard({
   // when the new fen is exactly one legal move after the previous one, an
   // overlay plays the choreography while the real board hides the squares the
   // overlay is drawing. Any newer fen replaces (and so cancels) the running show.
-  const bundleOn = settings.animatedPieces && isUnlocked(ANIMATED_PIECES_ITEM_ID)
+  const bundleOn = settings.animatedPieces
   const animate = bundleOn && !reducedMotion
   const [seenFen, setSeenFen] = useState(fen)
   const [anim, setAnim] = useState<{ key: string; move: Move } | null>(null)
