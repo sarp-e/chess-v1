@@ -34,7 +34,7 @@ function OnlineGame({ gameId }: { gameId: string | undefined }) {
 
   const {
     fen, moves, status, result, myColor, isMyTurn, lastMove,
-    drawOfferPending, incomingDrawOffer, rematchGameId, rematchOfferPending, incomingRematchOffer, code,
+    drawOfferPending, incomingDrawOffer, rematchGameId, rematchOfferPending, incomingRematchOffer, rematchCreating, code,
     makeMove, resign, offerDraw, acceptDraw, declineDraw, offerRematch, acceptRematch, declineRematch,
   } = useOnlineGame(gameId ?? '', user!.id)
 
@@ -66,6 +66,20 @@ function OnlineGame({ gameId }: { gameId: string | undefined }) {
     return (
       <div className="flex items-center justify-center min-h-[calc(100vh-56px)]">
         <div className="text-[var(--text-muted)] text-sm">Loading game…</div>
+      </div>
+    )
+  }
+
+  if (status === 'full') {
+    return (
+      <div className="flex items-center justify-center min-h-[calc(100vh-56px)]">
+        <div className="text-center space-y-2">
+          <p className="text-[var(--danger)] font-medium">Could not join game</p>
+          <p className="text-[var(--text-secondary)] text-sm">This game already has two players.</p>
+          <button onClick={() => navigate('/play/online')} className="text-[var(--accent)] underline text-sm block mt-3 mx-auto">
+            Back to lobby
+          </button>
+        </div>
       </div>
     )
   }
@@ -232,7 +246,8 @@ function OnlineGame({ gameId }: { gameId: string | undefined }) {
             <div className="flex gap-2">
               <button
                 onClick={acceptRematch}
-                className="flex-1 py-2 bg-[var(--success)] hover:opacity-90 text-white text-sm rounded-lg transition-colors"
+                disabled={rematchCreating}
+                className="flex-1 py-2 bg-[var(--success)] hover:opacity-90 text-white text-sm rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Accept
               </button>

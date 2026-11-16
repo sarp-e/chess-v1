@@ -14,6 +14,7 @@ export function useMatchmaking(userId: string): MatchmakingState {
   const [status, setStatus] = useState<MatchmakingStatus>('idle')
   const [gameId, setGameId] = useState<string | null>(null)
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
+  const unmountedRef = useRef(false)
 
   const leaveQueue = useCallback(async () => {
     if (channelRef.current) {
@@ -35,6 +36,8 @@ export function useMatchmaking(userId: string): MatchmakingState {
       .order('created_at', { ascending: true })
       .limit(1)
       .single()
+
+    if (unmountedRef.current) return
 
     if (waiting) {
       // Create a game — we're white, opponent is black. The "create game" RLS
@@ -71,6 +74,13 @@ export function useMatchmaking(userId: string): MatchmakingState {
       .from('matchmaking_queue')
       .upsert({ user_id: userId }, { onConflict: 'user_id' })
 
+    // Left the lobby while the upsert was in flight: unmount cleanup saw no
+    // channel, so remove the row we just wrote instead of subscribing.
+    if (unmountedRef.current) {
+      await supabase.from('matchmaking_queue').delete().eq('user_id', userId)
+      return
+    }
+
     // Subscribe to games table to detect when someone creates a game for us
     const channel = supabase
       .channel(`matchmaking:${userId}`)
@@ -96,7 +106,9 @@ export function useMatchmaking(userId: string): MatchmakingState {
   // Clean up on unmount — including our queue row, or a later searcher gets
   // paired with us after we've left the lobby.
   useEffect(() => {
+    unmountedRef.current = false
     return () => {
+      unmountedRef.current = true
       if (channelRef.current) {
         supabase.removeChannel(channelRef.current)
         supabase.from('matchmaking_queue').delete().eq('user_id', userId).then()

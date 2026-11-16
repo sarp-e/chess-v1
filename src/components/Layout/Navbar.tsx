@@ -284,10 +284,10 @@ export default function Navbar() {
                     </button>
                   </div>
 
-                  {/* Animated Pieces bundle — toggle once owned; locked sends you to the Shop */}
+                  {/* Animated Pieces bundle — toggle once owned (or if already equipped, e.g. after sign-out); locked sends you to the Shop */}
                   <div className="flex items-center justify-between">
                     <label className="text-[var(--text-muted)] text-xs">Animated Pieces</label>
-                    {isUnlocked(ANIMATED_PIECES_ITEM_ID) ? (
+                    {isUnlocked(ANIMATED_PIECES_ITEM_ID) || settings.animatedPieces ? (
                       <button
                         onClick={() => updateSettings(settings.animatedPieces ? { animatedPieces: false } : { animatedPieces: true, pieceSet: 'cburnett' })}
                         className={`w-10 h-5 rounded-full transition-colors relative ${

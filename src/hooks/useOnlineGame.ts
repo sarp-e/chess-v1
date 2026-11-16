@@ -3,7 +3,7 @@ import { Chess } from 'chess.js'
 import { supabase } from '../lib/supabase'
 import type { GameRow } from '../lib/supabase'
 
-export type OnlineGameStatus = 'loading' | 'waiting' | 'active' | 'finished' | 'error'
+export type OnlineGameStatus = 'loading' | 'waiting' | 'active' | 'finished' | 'error' | 'full'
 
 export interface OnlineGameState {
   fen: string
@@ -19,6 +19,7 @@ export interface OnlineGameState {
   code: string | null
   rematchOfferPending: boolean
   incomingRematchOffer: boolean
+  rematchCreating: boolean
   makeMove: (from: string, to: string) => Promise<boolean>
   resign: () => Promise<void>
   offerDraw: () => void
@@ -37,6 +38,8 @@ export function useOnlineGame(gameId: string, userId: string): OnlineGameState {
   const [rematchGameId, setRematchGameId] = useState<string | null>(null)
   const [rematchOfferPending, setRematchOfferPending] = useState(false)
   const [incomingRematchOffer, setIncomingRematchOffer] = useState(false)
+  const [rematchCreating, setRematchCreating] = useState(false)
+  const rematchStartedRef = useRef(false)
   const gameRef = useRef<GameRow | null>(null)
   gameRef.current = game
 
@@ -86,7 +89,8 @@ export function useOnlineGame(gameId: string, userId: string): OnlineGameState {
             .select('id')
             .maybeSingle()
           if (cancelled) return
-          if (joinError || !joined) { setStatus('error'); return }
+          if (joinError) { setStatus('error'); return }
+          if (!joined) { setStatus('full'); return }
           applyGame({ ...g, black_id: userId, status: 'active' })
         } else {
           applyGame(g)
@@ -110,9 +114,13 @@ export function useOnlineGame(gameId: string, userId: string): OnlineGameState {
 
   // Colors swap in a rematch, and the "create game" RLS policy only lets the
   // new white (the old black) insert the row — so the old black always creates it.
+  // rematchStartedRef makes that at most once per game: it blocks double-clicks and
+  // the simultaneous-offer case (own Accept click + opponent's rematch_accepted).
   const createRematch = useCallback(async () => {
     const current = gameRef.current
-    if (!current) return
+    if (!current || current.black_id !== userId || rematchStartedRef.current) return
+    rematchStartedRef.current = true
+    setRematchCreating(true)
     const { data, error } = await supabase
       .from('games')
       .insert({
@@ -122,11 +130,12 @@ export function useOnlineGame(gameId: string, userId: string): OnlineGameState {
       })
       .select('id')
       .single()
-    if (error || !data) return
+    setRematchCreating(false)
+    if (error || !data) { rematchStartedRef.current = false; return }
     supabase.channel(`game-moves:${current.id}`).send({ type: 'broadcast', event: 'rematch_accepted', payload: { gameId: data.id } })
     setRematchGameId(data.id)
     setIncomingRematchOffer(false)
-  }, [])
+  }, [userId])
 
   // Broadcast channel
   useEffect(() => {
@@ -275,6 +284,7 @@ export function useOnlineGame(gameId: string, userId: string): OnlineGameState {
     code: game?.code ?? null,
     rematchOfferPending,
     incomingRematchOffer,
+    rematchCreating,
     makeMove,
     resign,
     offerDraw,
