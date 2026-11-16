@@ -30,8 +30,13 @@ interface SettingsContextValue {
 const SettingsContext = createContext<SettingsContextValue | null>(null)
 
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
-  const stored = localStorage.getItem('chess_settings')
-  const initial = stored ? { ...DEFAULT_SETTINGS, ...JSON.parse(stored) } : DEFAULT_SETTINGS
+  let initial = DEFAULT_SETTINGS
+  try {
+    const stored = localStorage.getItem('chess_settings')
+    if (stored) initial = { ...DEFAULT_SETTINGS, ...JSON.parse(stored) }
+  } catch {
+    // Corrupted value — fall back to defaults instead of crashing the app on load.
+  }
 
   const [settings, dispatch] = useReducer(settingsReducer, initial)
 

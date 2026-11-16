@@ -12,8 +12,13 @@ function getDayOfYear(): number {
 
 export function usePuzzles() {
   const [progress, setProgress] = useState<PuzzleProgress>(() => {
-    const stored = localStorage.getItem('chess_puzzle_progress')
-    return stored ? JSON.parse(stored) : {}
+    try {
+      const stored = localStorage.getItem('chess_puzzle_progress')
+      return stored ? JSON.parse(stored) : {}
+    } catch {
+      // Corrupted value — start fresh instead of crashing the Puzzles page.
+      return {}
+    }
   })
 
   const [currentIndex, setCurrentIndex] = useState(() => {
