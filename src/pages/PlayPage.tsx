@@ -35,7 +35,7 @@ export default function PlayPage() {
   const myTurn = playerColor === 'white' ? 'w' : 'b'
   const botTurn = playerColor === 'white' ? 'b' : 'w'
 
-  const { awardBotWin } = useWallet()
+  const { startBotGame, awardBotWin } = useWallet()
   const [tokensEarned, setTokensEarned] = useState<number | null>(null)
   const awardedRef = useRef(false)
 
@@ -140,8 +140,9 @@ export default function PlayPage() {
     setHintLoading(false)
     setTokensEarned(null)
     awardedRef.current = false
+    startBotGame(pendingBot.elo)
     newGame()
-  }, [pendingBot, pendingAssistLevel, pendingColor, newGame])
+  }, [pendingBot, pendingAssistLevel, pendingColor, newGame, startBotGame])
 
   const handleUndo = useCallback(() => {
     hintValidRef.current = false
