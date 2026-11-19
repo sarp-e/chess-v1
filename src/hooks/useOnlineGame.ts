@@ -78,16 +78,10 @@ export function useOnlineGame(gameId: string, userId: string): OnlineGameState {
         const g = data as GameRow
 
         if (g.status === 'waiting' && g.white_id !== userId && !g.black_id) {
-          // Guarded so a second joiner racing for the same seat updates 0 rows
-          // (no error from PostgREST) instead of believing they're black.
+          // join_game only takes a still-open seat, so a second joiner racing
+          // for it gets false instead of believing they're black.
           const { data: joined, error: joinError } = await supabase
-            .from('games')
-            .update({ black_id: userId, status: 'active' })
-            .eq('id', gameId)
-            .eq('status', 'waiting')
-            .is('black_id', null)
-            .select('id')
-            .maybeSingle()
+            .rpc('join_game', { p_game_id: gameId })
           if (cancelled) return
           if (joinError) { setStatus('error'); return }
           if (!joined) { setStatus('full'); return }
@@ -201,10 +195,9 @@ export function useOnlineGame(gameId: string, userId: string): OnlineGameState {
     const event = newStatus === 'finished' ? 'game_over' : 'move'
     supabase.channel(`game-moves:${current.id}`).send({ type: 'broadcast', event, payload: { game: updatedGame } })
 
-    const { error } = await supabase
-      .from('games')
-      .update({ fen: newFen, moves: newMoves, status: newStatus, result: newResult })
-      .eq('id', current.id)
+    const { error } = await supabase.rpc('make_move', {
+      p_game_id: current.id, p_move: `${from}${to}`, p_fen: newFen, p_result: newResult,
+    })
 
     applyGame(updatedGame)
     return !error
@@ -215,8 +208,10 @@ export function useOnlineGame(gameId: string, userId: string): OnlineGameState {
     if (!current) return
     const result: GameRow['result'] = myColor === 'white' ? 'black' : 'white'
     const updatedGame: GameRow = { ...current, status: 'finished', result }
+    // Write before broadcasting: the winner claims tokens as soon as it sees
+    // game_over, and award_online_win needs the row to already be finished.
+    await supabase.rpc('resign_game', { p_game_id: current.id })
     supabase.channel(`game-moves:${current.id}`).send({ type: 'broadcast', event: 'game_over', payload: { game: updatedGame } })
-    await supabase.from('games').update({ status: 'finished', result }).eq('id', current.id)
     applyGame(updatedGame)
   }, [myColor, applyGame])
 
@@ -232,7 +227,7 @@ export function useOnlineGame(gameId: string, userId: string): OnlineGameState {
     if (!current) return
     const updatedGame: GameRow = { ...current, status: 'finished', result: 'draw' }
     supabase.channel(`game-moves:${current.id}`).send({ type: 'broadcast', event: 'game_over', payload: { game: updatedGame } })
-    await supabase.from('games').update({ status: 'finished', result: 'draw' }).eq('id', current.id)
+    await supabase.rpc('accept_draw', { p_game_id: current.id })
     applyGame(updatedGame)
     setIncomingDrawOffer(false)
   }, [applyGame])

@@ -9,6 +9,7 @@ interface WalletContextValue {
   unlocked: Set<string>
   loading: boolean
   isUnlocked: (itemId: string) => boolean
+  startBotGame: (botElo: number) => Promise<void>
   awardBotWin: (botElo: number) => Promise<number>
   awardOnlineWin: (gameId: string) => Promise<number>
   unlockItem: (itemId: string) => Promise<boolean>
@@ -46,6 +47,13 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
   }, [user])
 
   useEffect(() => { refresh() }, [refresh])
+
+  // Opens the server-side bot session that award_bot_win consumes. A failure
+  // here just means the next win pays 0, so errors are ignored.
+  const startBotGame = useCallback(async (botElo: number): Promise<void> => {
+    if (DEMO_MODE || !user) return
+    await supabase.rpc('start_bot_game', { p_bot_elo: botElo })
+  }, [user])
 
   const awardBotWin = useCallback(async (botElo: number): Promise<number> => {
     if (DEMO_MODE || !user) return 0
@@ -95,6 +103,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
         unlocked,
         loading,
         isUnlocked,
+        startBotGame,
         awardBotWin,
         awardOnlineWin,
         unlockItem,
