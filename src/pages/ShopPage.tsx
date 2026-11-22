@@ -182,6 +182,7 @@ export default function ShopPage() {
     { type: 'pieceSet', title: 'Piece Sets' },
     { type: 'animation', title: 'Animations' },
   ]
+  const [activeType, setActiveType] = useState<ShopItem['type']>(sections[0].type)
 
   return (
     <div className="max-w-4xl mx-auto p-4 lg:p-6">
@@ -201,10 +202,13 @@ export default function ShopPage() {
           <button
             key={section.type}
             type="button"
-            onClick={() =>
-              document.getElementById(`shop-${section.type}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-            }
-            className="bg-[var(--panel)] border border-[var(--border)] rounded-full px-3 py-1 text-xs font-medium text-[var(--text-primary)] hover:bg-[var(--panel-alt)] transition-colors"
+            aria-pressed={section.type === activeType}
+            onClick={() => setActiveType(section.type)}
+            className={`border border-[var(--border)] rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+              section.type === activeType
+                ? 'bg-[var(--accent-soft)] text-[var(--accent)]'
+                : 'bg-[var(--panel)] text-[var(--text-primary)] hover:bg-[var(--panel-alt)]'
+            }`}
           >
             {section.title}
           </button>
@@ -215,8 +219,8 @@ export default function ShopPage() {
         <div className="mb-4 text-[var(--danger)] text-sm bg-[var(--danger-soft)] rounded-lg px-3 py-2">{message}</div>
       )}
 
-      {sections.map(section => (
-        <section key={section.type} id={`shop-${section.type}`} className="mb-8 scroll-mt-4">
+      {sections.filter(section => section.type === activeType).map(section => (
+        <section key={section.type} className="mb-8">
           <h2 className="text-[var(--text-primary)] font-semibold mb-3">{section.title}</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {shopItemsOfType(section.type).map(item => {
